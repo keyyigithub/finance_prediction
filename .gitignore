@@ -1,0 +1,4 @@
+# ignore the data file, as they are too big ~~
+df_with_features.csv
+merged_data/
+FBDQA2021A_MMP_Challenge/
