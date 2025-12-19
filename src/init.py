@@ -74,11 +74,6 @@ def main():
         df_with_features, feature_columns, "label_5", sequence_length
     )
     X_train, X_test, y_train, y_test = dp.split_and_scale(X, y)
-    # 划分训练集和测试集
-    # weights = compute_class_weight("balanced", classes=np.array([0, 1, 2]), y=y)
-    # weights_dict = dict(zip(np.array([0, 1, 2]), weights))
-    #
-    # print(f"Weights for each class: {weights_dict}")
 
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
     print(f"测试集形状: {X_test.shape}, {y_test.shape}")

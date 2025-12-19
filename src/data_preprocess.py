@@ -1,3 +1,4 @@
+from os import ST_NOATIME
 from numpy.typing import NDArray
 from sklearn.preprocessing import RobustScaler, MinMaxScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
@@ -600,32 +601,33 @@ def display_detail(df: pd.DataFrame, feature: str):
 # TODO: Write scaling functions for different kinds of features
 
 
-def scale_price_feature(X_train: NDArray, X_test: NDArray):
-    pass
+def scale_train(scaler, X_train: NDArray):
+    original_shape_train = X_train.shape
+
+    # 重塑为2D用于缩放 (samples*timesteps, features)
+    n_features = X_train.shape[2]
+
+    X_train_2d = X_train.reshape(-1, n_features)
+    X_train_scaled_2d = scaler.fit_transform(X_train_2d)
+
+    # 重塑回3D (samples, timesteps, features)
+    X_train_scaled = X_train_scaled_2d.reshape(original_shape_train)
+
+    return X_train_scaled
 
 
-def scale_microstructure_feature(X_train: NDArray, X_test: NDArray):
-    pass
+def scale_test(scaler, X_test: NDArray):
+    original_shape_test = X_test.shape
+    n_features = X_test.shape[2]
 
+    # 重塑为2D用于缩放 (samples*timesteps, features)
+    X_test_2d = X_test.reshape(-1, n_features)
+    X_test_scaled_2d = scaler.transform(X_test_2d)
 
-def scale_momentum_feature(X_train: NDArray, X_test: NDArray):
-    pass
+    # 重塑回3D (samples, timesteps, features)
+    X_test_scaled = X_test_scaled_2d.reshape(original_shape_test)
 
-
-def scale_volatility_feature(X_train: NDArray, X_test: NDArray):
-    pass
-
-
-def scale_technical_feature(X_train: NDArray, X_test: NDArray):
-    pass
-
-
-def scale_volume_feature(X_train: NDArray, X_test: NDArray):
-    pass
-
-
-def scale_time_feature(X_train: NDArray, X_test: NDArray):
-    pass
+    return X_test_scaled
 
 
 def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
@@ -635,22 +637,14 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
     print("Splitting Data... Done.")
 
     print("Scaling data...")
-    scaler = RobustScaler()
-    original_shape_train = X_train.shape
-    original_shape_test = X_test.shape
 
-    # 重塑为2D用于缩放 (samples*timesteps, features)
-    n_samples_train, n_timesteps, n_features = X_train.shape
-    n_samples_test = X_test.shape[0]
-
-    X_train_2d = X_train.reshape(-1, n_features)
-    X_test_2d = X_test.reshape(-1, n_features)
-    X_train_scaled_2d = scaler.fit_transform(X_train_2d)
-    X_test_scaled_2d = scaler.transform(X_test_2d)
-
-    # 重塑回3D (samples, timesteps, features)
-    X_train_scaled = X_train_scaled_2d.reshape(original_shape_train)
-    X_test_scaled = X_test_scaled_2d.reshape(original_shape_test)
-
+    # Different scalers
+    price_scaler = RobustScaler()
+    microstructure_scaler = MinMaxScaler()
+    X_train_scaled = np.concatenate(
+        scale_train(price_scaler, X_train[:, :, 0:2]),
+        scale_train(microstructure_scaler, X_train[:, :, 2:4]),
+    )
+    X_test_scaled = 1
     print("Scaling data... Done.")
     return X_train_scaled, X_test_scaled, y_train, y_test

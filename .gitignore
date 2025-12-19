@@ -2,3 +2,4 @@
 df_with_features.csv
 merged_data/
 FBDQA2021A_MMP_Challenge/
+__pycache__
