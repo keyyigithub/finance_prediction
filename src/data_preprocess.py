@@ -14,7 +14,8 @@ selected_features = [
     "bid_ask_spread",  # 买卖价差
     "size_imbalance_1",  # 一档买卖量不平衡
     "microprice",  # 微观价格（考虑深度的加权价格）
-    "order_flow_imbalance",  # 订单流不平衡
+    "size_imbalance_5",
+    # "order_flow_imbalance",  # 订单流不平衡
     "total_depth",  # 总市场深度
     # 3. 动量与趋势（4个）
     "midprice_momentum_20",  # 20期动量
@@ -640,11 +641,48 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
 
     # Different scalers
     price_scaler = RobustScaler()
-    microstructure_scaler = MinMaxScaler()
-    X_train_scaled = np.concatenate(
-        scale_train(price_scaler, X_train[:, :, 0:2]),
-        scale_train(microstructure_scaler, X_train[:, :, 2:4]),
+    microstructure_scaler = Pipeline(
+        [("log", FunctionTransformer(np.log1p)), ("scale", RobustScaler())]
     )
-    X_test_scaled = 1
+    momentum_scaler = RobustScaler(quantile_range=(10, 90))
+    volatility_scaler = Pipeline(
+        [
+            ("log", FunctionTransformer(lambda x: np.sign(x) * np.log1p(np.abs(x)))),
+            ("scale", RobustScaler()),
+        ]
+    )
+    technical_scaler = RobustScaler()
+    volume_scaler = Pipeline(
+        [
+            (
+                "sign_log",
+                FunctionTransformer(lambda x: np.sign(x) * np.log1p(np.abs(x))),
+            ),
+            ("scale", RobustScaler()),
+        ]
+    )
+    X_train_scaled = np.concatenate(
+        [
+            scale_train(price_scaler, X_train[:, :, 0:3]),
+            scale_train(microstructure_scaler, X_train[:, :, 3:7]),
+            scale_train(momentum_scaler, X_train[:, :, 7:11]),
+            scale_train(volatility_scaler, X_train[:, :, 11:14]),
+            scale_train(technical_scaler, X_train[:, :, 14:17]),
+            scale_train(volume_scaler, X_train[:, :, 17:19]),
+        ],
+        axis=2,
+    )
+    X_test_scaled = np.concatenate(
+        [
+            scale_train(price_scaler, X_test[:, :, 0:3]),
+            scale_train(microstructure_scaler, X_test[:, :, 3:7]),
+            scale_train(momentum_scaler, X_test[:, :, 7:11]),
+            scale_train(volatility_scaler, X_test[:, :, 11:14]),
+            scale_train(technical_scaler, X_test[:, :, 14:17]),
+            scale_train(volume_scaler, X_test[:, :, 17:19]),
+        ],
+        axis=2,
+    )
+
     print("Scaling data... Done.")
     return X_train_scaled, X_test_scaled, y_train, y_test

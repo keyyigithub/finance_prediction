@@ -5,9 +5,6 @@ import data_preprocess as dp
 import evaluation as eval
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import RobustScaler
-from sklearn.utils.class_weight import compute_class_weight
 
 # ----------
 # Next step:
@@ -66,12 +63,48 @@ feature_columns = [
 ]
 
 
+def check_feature_distributions(df, features):
+    """
+    检查特征分布，找出问题特征
+    """
+    results = []
+    for feature in features:
+        data = df[feature].values
+        stats = {
+            "feature": feature,
+            "min": np.nanmin(data),
+            "max": np.nanmax(data),
+            "mean": np.nanmean(data),
+            "std": np.nanstd(data),
+            "has_nan": np.any(np.isnan(data)),
+            "has_inf": np.any(np.isinf(data)),
+            "negative_count": np.sum(data < 0),
+            "zero_count": np.sum(data == 0),
+            "less_than_minus1": np.sum(data < -1) if np.any(data < -1) else 0,
+        }
+        results.append(stats)
+
+    return pd.DataFrame(results)
+
+
 def main():
     df_with_features = pd.read_csv("./df_with_features.csv")
     df_with_features = df_with_features.tail(len(df_with_features) - 51)
+    # print("Checking...")
+    # stats_df = check_feature_distributions(df_with_features, dp.selected_features)
+    #
+    # # 查看有问题的特征
+    # problem_features = stats_df[
+    #     (stats_df["less_than_minus1"] > 0)
+    #     | (stats_df["has_nan"])
+    #     | (stats_df["has_inf"])
+    # ]
+    #
+    # print("有问题的特征：")
+    # print(stats_df)
     sequence_length = 100
     X, y = dp.sequentialize_certain_features(
-        df_with_features, feature_columns, "label_5", sequence_length
+        df_with_features, dp.selected_features, "label_5", sequence_length
     )
     X_train, X_test, y_train, y_test = dp.split_and_scale(X, y)
 
