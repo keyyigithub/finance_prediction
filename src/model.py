@@ -46,8 +46,8 @@ class Attention(Layer):
 def build_base_model(input_shape):
     model = Sequential(
         [
-            # Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
-            # Dropout(0.3),
+            Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
+            Dropout(0.3),
             # Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
             # Dropout(0.3),
             LSTM(
@@ -58,10 +58,10 @@ def build_base_model(input_shape):
             ),
             BatchNormalization(),
             Dropout(0.3),
-            LSTM(256, activation="tanh", return_sequences=False),
+            LSTM(256, activation="tanh", return_sequences=True),
             BatchNormalization(),
             Dropout(0.3),
-            # Attention(),
+            Attention(),
         ]
     )
     return model
@@ -77,6 +77,7 @@ def build_classification_model(input_shape, num_classes=3):
             Dense(128, activation="tanh"),
             Dropout(0.3),
             Dense(64, activation="tanh"),
+            Dropout(0.3),
             Dense(num_classes, activation="softmax"),  # 3个类别：0,1,2
         ]
     )
@@ -96,6 +97,9 @@ def build_continuous_model(input_shape):
         [
             build_base_model(input_shape),
             Dense(64, activation="tanh"),
+            Dropout(0.3),
+            Dense(32, activation="tanh"),
+            Dropout(0.3),
             Dense(1, activation="tanh"),  # 3个类别：0,1,2
         ]
     )

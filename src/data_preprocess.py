@@ -594,7 +594,7 @@ def sequentialize_certain_features(
     features = df[feature_columns]
     for i in range(len(features) - seq_length):
         X.append(features[i : i + seq_length])
-        y.append(df.iloc[i + seq_length][label_column])
+        y.append(df.iloc[i + seq_length - 1][label_column])
 
     print(f"Sequentializing features... done.")
     return np.array(X), np.array(y)
@@ -643,6 +643,7 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
 
     # Different scalers
     price_scaler = RobustScaler()
+    # print(f"Initial: {price_scaler.center_,price_scaler.scale_}")
     microstructure_scaler = Pipeline(
         [("log", FunctionTransformer(np.log1p)), ("scale", RobustScaler())]
     )
@@ -666,25 +667,45 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
     X_train_scaled = np.concatenate(
         [
             scale_train(price_scaler, X_train[:, :, 0:3]),
+            # X_train[:, :, 0:3],
             scale_train(microstructure_scaler, X_train[:, :, 3:7]),
             scale_train(momentum_scaler, X_train[:, :, 7:11]),
             scale_train(volatility_scaler, X_train[:, :, 11:14]),
             scale_train(technical_scaler, X_train[:, :, 14:17]),
             scale_train(volume_scaler, X_train[:, :, 17:19]),
+            # X_train[:, :, 19].reshape(-1, -1, 1),
         ],
         axis=2,
     )
+    print(f"After Train Scaling: {price_scaler.center_,price_scaler.scale_}")
     X_test_scaled = np.concatenate(
         [
-            scale_train(price_scaler, X_test[:, :, 0:3]),
-            scale_train(microstructure_scaler, X_test[:, :, 3:7]),
-            scale_train(momentum_scaler, X_test[:, :, 7:11]),
-            scale_train(volatility_scaler, X_test[:, :, 11:14]),
-            scale_train(technical_scaler, X_test[:, :, 14:17]),
-            scale_train(volume_scaler, X_test[:, :, 17:19]),
+            scale_test(price_scaler, X_test[:, :, 0:3]),
+            # X_test[:, :, 0:3],
+            scale_test(microstructure_scaler, X_test[:, :, 3:7]),
+            scale_test(momentum_scaler, X_test[:, :, 7:11]),
+            scale_test(volatility_scaler, X_test[:, :, 11:14]),
+            scale_test(technical_scaler, X_test[:, :, 14:17]),
+            scale_test(volume_scaler, X_test[:, :, 17:19]),
+            # X_test[:, :, 19].reshape(-1, -1, 1),
         ],
         axis=2,
     )
+    print(f"After Test Scaling: {price_scaler.center_,price_scaler.scale_}")
 
     print("Scaling data... Done.")
-    return X_train_scaled, X_test_scaled, y_train, y_test
+    return X_train_scaled, X_test_scaled, y_train, y_test, price_scaler
+
+
+def inverse_scale(scaler, X_scaled: np.ndarray):
+    original_shape = X_scaled.shape
+    n_features = X_scaled.shape[-1]
+
+    # 展平成2D进行逆变换（与缩放时保持一致）
+    X_2d = X_scaled.reshape(-1, n_features)
+    X_original_2d = scaler.inverse_transform(X_2d)
+
+    # 重塑回原始形状
+    X_original = X_original_2d.reshape(original_shape)
+
+    return X_original

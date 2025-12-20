@@ -64,29 +64,32 @@ feature_columns = [
 
 
 def main():
+    print("-" * 50)
     df_with_features = pd.read_csv("./df_with_features.csv")
     df_with_features = dp.add_midprice_label(df_with_features, 5)
     df_with_features = df_with_features.tail(len(df_with_features) - 51)
-    # print("Checking...")
-    # stats_df = eval.check_feature_distributions(df_with_features, dp.selected_features)
-    #
-    # # 查看有问题的特征
-    # problem_features = stats_df[
-    #     (stats_df["less_than_minus1"] > 0)
-    #     | (stats_df["has_nan"])
-    #     | (stats_df["has_inf"])
-    # ]
-    #
-    # print("有问题的特征：")
-    # print(stats_df)
+    df_with_features = df_with_features.head(len(df_with_features) - 10)
+
     sequence_length = 100
     X, y = dp.sequentialize_certain_features(
         df_with_features, dp.selected_features, "midprice_after_5", sequence_length
     )
-    X_train, X_test, y_train, y_test = dp.split_and_scale(X, y)
-
+    X_train, X_test, y_train, y_test, price_scaler = dp.split_and_scale(X, y)
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
     print(f"测试集形状: {X_test.shape}, {y_test.shape}")
+
+    # print(f"From return: {price_scaler.center_,price_scaler.scale_}")
+    # print(f"训练集形状: {X_train.shape}, {y_train.shape}")
+    # print(f"测试集形状: {X_test.shape}, {y_test.shape}")
+    #
+    # X_train_original = price_scaler.inverse_transform(
+    #     X_train[:, 99, 0:3].reshape(-1, 3)
+    # )
+    # print(f"After Inverse: {price_scaler.center_,price_scaler.scale_}")
+    # print(f"The shape of X_train_original: {X_train_original.shape}")
+    # y_train = eval.get_label(y_train, X_train_original[:, 1], 5)
+    # print(f"The first 20 (maybe) true labels: {y_train[:20]}")
+    # print(f"The first 20 true labels: {df_with_features.iloc[100:120]['label_5']}")
 
     # X_train, y_train = apply_undersampling(X_train, y_train)
     # 构建模型
@@ -99,25 +102,37 @@ def main():
         X_train,
         y_train,
         validation_data=(X_test, y_test),
-        epochs=3,
+        epochs=10,
         batch_size=128,
         verbose=1,
-        class_weight={0: 4, 1: 1, 2: 4},
+        # class_weight={0: 4, 1: 1, 2: 4},
     )
 
     # 预测示例
     y_pred = model.predict(X_test)
     pt.plot_predict_curve(y_test, y_pred)
     # y_pred = np.argmax(y_pred, axis=1)
-    y_pred = eval.get_label(y_pred, X_test[:, 99, 1], 5)
-    y_test = eval.get_label(y_test, X_test[:, 99, 1], 5)
+
+    X_test_original = price_scaler.inverse_transform(X_test[:, 99, 0:3].reshape(-1, 3))
+
+    y_pred = eval.get_label(y_pred, X_test_original[:, 1], 5)
+    y_test = eval.get_label(y_test, X_test_original[:, 1], 5)
+    print(f"The first 20 pred labels: {y_pred[:20]}")
+    print(f"The first 20 true labels: {y_test[:20]}")
+
     test_score = eval.calculate_f_beta_multiclass(y_test, y_pred)
     print(f"The f beta score on test: {test_score}")
 
     y_train_pred = model.predict(X_train)
+    pt.plot_predict_curve(y_train, y_train_pred)
     # y_train_pred = np.argmax(y_train_pred, axis=1)
-    y_train_pred = eval.get_label(y_train_pred, X_train[:, 99, 1], 5)
-    y_train = eval.get_label(y_train, X_train[:, 99, 1], 5)
+    X_train_original = price_scaler.inverse_transform(
+        X_train[:, 99, 0:3].reshape(-1, 3)
+    )
+
+    y_train_pred = eval.get_label(y_train_pred, X_train_original[:, 1], 5)
+    y_train = eval.get_label(y_train, X_train_original[:, 1], 5)
+
     train_score = eval.calculate_f_beta_multiclass(y_train, y_train_pred)
     print(f"The f beta score on train: {train_score}")
 
