@@ -673,7 +673,7 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
             scale_train(volatility_scaler, X_train[:, :, 11:14]),
             scale_train(technical_scaler, X_train[:, :, 14:17]),
             scale_train(volume_scaler, X_train[:, :, 17:19]),
-            # X_train[:, :, 19].reshape(-1, -1, 1),
+            X_train[:, :, 19].reshape(X_train.shape[0], X_train.shape[1], 1),
         ],
         axis=2,
     )
@@ -687,7 +687,7 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
             scale_test(volatility_scaler, X_test[:, :, 11:14]),
             scale_test(technical_scaler, X_test[:, :, 14:17]),
             scale_test(volume_scaler, X_test[:, :, 17:19]),
-            # X_test[:, :, 19].reshape(-1, -1, 1),
+            X_test[:, :, 19].reshape(X_test.shape[0], X_test.shape[1], 1),
         ],
         axis=2,
     )

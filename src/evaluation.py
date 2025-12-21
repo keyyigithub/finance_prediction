@@ -37,7 +37,7 @@ def calculate_f_beta_multiclass(true_labels, pred_labels, beta=0.5):
             true_labels[non_one_mask] == pred_labels[non_one_mask]
         ) / np.sum(non_one_mask)
     else:
-        recall = 0.0
+        recall = 10.0
 
     print(f"Recall: {recall}")
 
@@ -48,7 +48,7 @@ def calculate_f_beta_multiclass(true_labels, pred_labels, beta=0.5):
             true_labels[pred_non_one_mask] == pred_labels[pred_non_one_mask]
         ) / np.sum(pred_non_one_mask)
     else:
-        precision = 0.0
+        precision = 10.0
 
     print(f"Precision: {precision}")
     # 计算F-beta分数

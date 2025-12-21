@@ -8,6 +8,7 @@ from tensorflow.keras.layers import (
     Layer,
     BatchNormalization,
 )
+from tensorflow.keras.regularizers import l2
 from tensorflow.keras import backend as K
 
 
@@ -46,8 +47,8 @@ class Attention(Layer):
 def build_base_model(input_shape):
     model = Sequential(
         [
-            Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
-            Dropout(0.3),
+            # Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
+            # Dropout(0.3),
             # Conv1D(filters=128, kernel_size=3, padding="same", activation="tanh"),
             # Dropout(0.3),
             LSTM(
@@ -55,13 +56,20 @@ def build_base_model(input_shape):
                 activation="tanh",
                 return_sequences=True,
                 input_shape=input_shape,
+                kernel_regularizer=l2(0.01),
             ),
             BatchNormalization(),
             Dropout(0.3),
-            LSTM(256, activation="tanh", return_sequences=True),
+            LSTM(
+                256,
+                activation="tanh",
+                return_sequences=False,
+                kernel_regularizer=l2(0.01),
+            ),
             BatchNormalization(),
             Dropout(0.3),
-            Attention(),
+            # Attention(),
+            # BatchNormalization(),
         ]
     )
     return model
@@ -74,9 +82,9 @@ def build_classification_model(input_shape, num_classes=3):
             build_base_model(input_shape),
             # Dense(256, activation="relu"),
             # Dropout(0.3),
-            Dense(128, activation="tanh"),
+            Dense(128, activation="tanh", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
-            Dense(64, activation="tanh"),
+            Dense(64, activation="relu", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
             Dense(num_classes, activation="softmax"),  # 3个类别：0,1,2
         ]
@@ -96,9 +104,9 @@ def build_continuous_model(input_shape):
     model = Sequential(
         [
             build_base_model(input_shape),
-            Dense(64, activation="tanh"),
+            Dense(64, activation="tanh", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
-            Dense(32, activation="tanh"),
+            Dense(32, activation="tanh", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
             Dense(1, activation="tanh"),  # 3个类别：0,1,2
         ]

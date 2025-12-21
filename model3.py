@@ -81,7 +81,6 @@ def build_lstm_model(input_shape):
     model.compile(
         optimizer="adam",
         loss="mse",
-        metrics=["mse"],
     )
 
     return model
@@ -111,8 +110,9 @@ def main():
 
     # 预处理数据
     sequence_length = 100  # 使用过去30个tick的数据
+    time_delay = 5
     print("Preprocessing Data...")
-    X, y = preprocess_data(df, sequence_length, 5)
+    X, y = preprocess_data(df, sequence_length, time_delay)
     print("Preprocessing Data...Done")
 
     # 划分训练集和测试集
@@ -158,8 +158,8 @@ def main():
 
     print("Shape of y_pred_np_squeezed:", y_pred_np_squeezed.shape)
     print("Calculating labels with NumPy...")
-    pred_labels = change_label(y_pred_np_squeezed, X_np, 5)
-    true_labels = change_label(y_test_squeezed, X_np, 5)
+    pred_labels = change_label(y_pred_np_squeezed, X_np, time_delay)
+    true_labels = change_label(y_test_squeezed, X_np, time_delay)
     print("Calculating labels...Done")
 
     # m = Accuracy()
