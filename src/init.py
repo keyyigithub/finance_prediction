@@ -65,8 +65,10 @@ feature_columns = [
 
 def main():
     print("-" * 50)
-    X_train = [],y_train = []
-    X_test = [],y_test = []
+    X_train = []
+    y_train = []
+    X_test = []
+    y_test = []
     for i in range(10):
 
         df_with_features = pd.read_csv("./merge{i}_with_features.csv")
