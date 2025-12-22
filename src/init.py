@@ -65,19 +65,25 @@ feature_columns = [
 
 def main():
     print("-" * 50)
-    df_with_features = pd.read_csv("./df_with_features.csv")
-    df_with_features = dp.add_midprice_label(df_with_features, 5)
-    df_with_features = df_with_features.tail(len(df_with_features) - 51)
-    df_with_features = df_with_features.head(len(df_with_features) - 10)
+    X=[],y=[]
+    for i in range(10):
 
-    sequence_length = 100
-    time_delay = 5
-    X, y = dp.sequentialize_certain_features(
-        df_with_features, dp.selected_features, f"label_{time_delay}", sequence_length
-    )
+        df_with_features = pd.read_csv("./merge{i}_with_features.csv")
+        df_with_features = dp.add_midprice_label(df_with_features, 5)
+        df_with_features = df_with_features.tail(len(df_with_features) - 51)
+        df_with_features = df_with_features.head(len(df_with_features) - 10)
+    
+        sequence_length = 50
+        time_delay = 5
+        X_single, y_single = dp.sequentialize_certain_features(
+            df_with_features, dp.selected_features, f"label_{time_delay}", sequence_length
+        )
+        X = contact(X , X_single)
+        y = contact(y , y_single)
     X_train, X_test, y_train, y_test, price_scaler = dp.split_and_scale(
         X, y, test_size=0.2
     )
+        
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
     print(f"测试集形状: {X_test.shape}, {y_test.shape}")
 
