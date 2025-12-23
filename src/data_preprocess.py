@@ -1,8 +1,8 @@
-from os import ST_NOATIME
 from numpy.typing import NDArray
 from sklearn.preprocessing import RobustScaler, MinMaxScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
+import joblib
 import pandas as pd
 import numpy as np
 
@@ -198,12 +198,7 @@ def scale_test(scaler, X_test: NDArray):
     return X_test_scaled
 
 
-def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
-    print(f"Splitting Data... Test size: {test_size}")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False)
-
-    print("Splitting Data... Done.")
-
+def scale(X_train: NDArray, X_test: NDArray):
     print("Scaling data...")
 
     balance_scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -236,8 +231,12 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
     )
     # print(f"After Test Scaling: {price_scaler.center_,price_scaler.scale_}")
 
+    joblib.dump(balance_scaler, "./balance.joblib")
+    joblib.dump(volume_scaler, "./volume.joblib")
+    print("The scalers saved to . ")
+
     print("Scaling data... Done.")
-    return X_train_scaled, X_test_scaled, y_train, y_test
+    return X_train_scaled, X_test_scaled
 
 
 def inverse_scale(scaler, X_scaled: np.ndarray):

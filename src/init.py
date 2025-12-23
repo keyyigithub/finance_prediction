@@ -1,4 +1,4 @@
-from sklearn.utils import class_weight
+from sklearn.model_selection import train_test_split
 import plotter as pt
 import model as md
 import data_preprocess as dp
@@ -65,9 +65,11 @@ def main():
             sequence_length,
         )
         print_memory_usage(f"After sequentializing stock {i}")
+
         (X_train_single, X_test_single, y_train_single, y_test_single) = (
-            dp.split_and_scale(X_single, y_single, test_size=0.2)
+            train_test_split(X_single, y_single, test_size=0.2, shuffle=False)
         )
+        print_memory_usage(f"After splitting data of stock {i}")
 
         # Incremental concatenation
         if X_train is None:
@@ -81,6 +83,7 @@ def main():
             y_train = np.concatenate([y_train, y_train_single], axis=0)
             y_test = np.concatenate([y_test, y_test_single], axis=0)
 
+    X_train, X_test = dp.scale(X_train, X_test)
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
     print(f"测试集形状: {X_test.shape}, {y_test.shape}")
 
@@ -136,8 +139,8 @@ def main():
     # pt.draw_loss_curve(history)
     # pt.draw_accuracy_curve(history)
     # 保存模型
-    # model.save('lstm_price_prediction_model.h5')
-    # print("模型已保存为 'lstm_price_prediction_model.h5'")
+    model.save("lstm_price_prediction_model.keras")
+    print("模型已保存为 'lstm_price_prediction_model.keras'")
 
 
 if __name__ == "__main__":
