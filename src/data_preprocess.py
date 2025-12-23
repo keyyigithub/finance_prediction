@@ -38,39 +38,6 @@ selected_features = [
     # "sym",
 ]
 
-price_features = [
-    "n_close",  # 已标准化
-    "n_midprice",  # 已标准化
-    "microprice",  # 需要特别处理
-]
-
-microstructure_features = [
-    "bid_ask_spread",  # 价差（相对值，已标准化）
-    "size_imbalance_1",  # 买卖量比，范围[-1, 1]
-    "order_flow_imbalance",  # 订单流不平衡，可能有异常值
-    "total_depth",  # 总深度，右偏分布
-]
-
-momentum_features = [
-    "midprice_momentum_20",  # 动量，可能正负
-    "macd",  # MACD，可能正负
-    "ma_cross_5_20",  # 交叉信号，[-1, 1]范围
-    "price_acceleration",  # 加速度，可能正负
-]
-
-volatility_features = [
-    "volatility_20",  # 波动率，严格正数，右偏
-    "bollinger_width",  # 布林带宽度，严格正数
-    "parkinson_vol_20",  # Parkinson波动率，严格正数
-]
-
-volume_features = [
-    "amount_delta",  # 成交额变化，可能正负，有异常值
-    "volume_momentum",  # 成交量动量
-]
-
-time_features = ["time_sin"]  # 已在[-1, 1]范围
-
 
 def create_all_features(df: pd.DataFrame):
     """创建所有特征"""
@@ -148,12 +115,13 @@ def create_all_features(df: pd.DataFrame):
     delta = df["n_midprice"].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / loss
-    df["rsi_14"] = 100 - (100 / (1 + rs))
+    df["rsi_14"] = np.where((gain + loss) != 0, 1 - (loss / (gain + loss)), 0.5)
 
     low_min = df["n_midprice"].rolling(window=14).min()
     high_max = df["n_midprice"].rolling(window=14).max()
-    df["stochastic_k"] = 100 * (df["n_midprice"] - low_min) / (high_max - low_min)
+    price_diff = df["n_midprice"] - low_min
+    range_diff = high_max - low_min
+    df["stochastic_k"] = np.where(range_diff != 0, price_diff / range_diff, 0.5)
 
     df["volume_momentum"] = df["amount_delta"] - df["amount_delta"].shift(1)
 
@@ -241,7 +209,10 @@ def split_and_scale(X: NDArray, y: NDArray, test_size=0.2):
     price_scaler = RobustScaler()
     # print(f"Initial: {price_scaler.center_,price_scaler.scale_}")
     microstructure_scaler = Pipeline(
-        [("log", FunctionTransformer(np.log1p)), ("scale", RobustScaler())]
+        [
+            ("log", FunctionTransformer(lambda x: np.sign(x) * np.log1p(np.abs(x)))),
+            ("scale", RobustScaler()),
+        ]
     )
     momentum_scaler = RobustScaler(quantile_range=(10, 90))
     volatility_scaler = Pipeline(
