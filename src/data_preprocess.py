@@ -203,11 +203,14 @@ def scale(X_train: NDArray, X_test: NDArray):
 
     balance_scaler = MinMaxScaler(feature_range=(-1, 1))
 
+    def sign_log(x):
+        return np.sign(x) * np.log1p(np.abs(x))
+
     volume_scaler = Pipeline(
         [
             (
                 "sign_log",
-                FunctionTransformer(lambda x: np.sign(x) * np.log1p(np.abs(x))),
+                FunctionTransformer(sign_log),
             ),
             ("scale", RobustScaler()),
         ]
