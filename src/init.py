@@ -140,8 +140,8 @@ def main():
     # y_train_pred = eval.get_label(y_train_pred, X_train_original[:, 1], 5)
     # y_train = eval.get_label(y_train, X_train_original[:, 1], 5)
 
-    train_score = eval.calculate_f_beta_multiclass(y_train, y_train_pred)
-    print(f"The f beta score on train: {train_score}")
+    # train_score = eval.calculate_f_beta_multiclass(y_train, y_train_pred)
+    # print(f"The f beta score on train: {train_score}")
 
     # pt.draw_loss_curve(history)
     # pt.draw_accuracy_curve(history)
