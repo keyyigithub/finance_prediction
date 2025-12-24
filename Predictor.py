@@ -44,8 +44,8 @@ class Predictor:
             "time_sin",  # 时间正弦编码
             "sym",
         ]
-        self.balance_scaler = joblib.load("balance.joblib")
-        self.volume_scaler = joblib.load("volume.joblib")
+        self.balance_scaler = joblib.load("./balance.joblib")
+        self.volume_scaler = joblib.load("./volume.joblib")
         self.load_model("./lstm_price_prediction_model.keras")
 
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
@@ -173,3 +173,11 @@ class Predictor:
         X[:, :, 17:19] = self.volume_scaler.transform(X[:, :, 17:19])
 
         return X
+
+
+def test():
+    pred = Predictor()
+
+
+if __name__ == "__main__":
+    test()

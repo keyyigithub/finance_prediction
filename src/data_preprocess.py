@@ -144,6 +144,17 @@ def create_all_features(df: pd.DataFrame):
     return df
 
 
+def split(X, y, test_size=0.2):
+    n_samples = X.shape[0]
+    split_idx = int(n_samples * (1 - test_size))
+    X_train = X[:split_idx, :, :]
+    y_train = y[:split_idx]
+    X_test = X[split_idx:, :, :]
+    y_test = y[split_idx:]
+
+    return X_train, X_test, y_train, y_test
+
+
 def add_midprice_label(df: pd.DataFrame, time_delay: int):
     df[f"midprice_after_{time_delay}"] = df["n_midprice"].shift(-time_delay)
     return df
@@ -198,8 +209,7 @@ def scale_test(scaler, X_test: NDArray):
     return X_test_scaled
 
 
-def sign_log(x):
-    return np.sign(x) * np.log1p(np.abs(x))
+sign_log = lambda x: np.sign(x) * np.log1p(np.abs(x))
 
 
 def scale(X_train: NDArray, X_test: NDArray):

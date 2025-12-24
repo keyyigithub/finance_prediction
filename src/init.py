@@ -66,8 +66,8 @@ def main():
         )
         # print_memory_usage(f"After sequentializing stock {i}")
 
-        (X_train_single, X_test_single, y_train_single, y_test_single) = (
-            train_test_split(X_single, y_single, test_size=0.2, shuffle=False)
+        (X_train_single, X_test_single, y_train_single, y_test_single) = dp.split(
+            X_single, y_single, test_size=0.2
         )
         # print_memory_usage(f"After splitting data of stock {i}")
 
