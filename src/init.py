@@ -108,7 +108,7 @@ def main():
         y_train,
         validation_data=(X_test, y_test),
         epochs=5,
-        batch_size=128,
+        batch_size=1024,
         verbose=1,
         class_weight={0: 4, 1: 1, 2: 3},
     )
