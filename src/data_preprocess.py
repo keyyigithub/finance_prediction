@@ -198,13 +198,14 @@ def scale_test(scaler, X_test: NDArray):
     return X_test_scaled
 
 
+def sign_log(x):
+    return np.sign(x) * np.log1p(np.abs(x))
+
+
 def scale(X_train: NDArray, X_test: NDArray):
     print("Scaling data...")
 
     balance_scaler = MinMaxScaler(feature_range=(-1, 1))
-
-    def sign_log(x):
-        return np.sign(x) * np.log1p(np.abs(x))
 
     volume_scaler = Pipeline(
         [
