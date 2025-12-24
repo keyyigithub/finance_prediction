@@ -1,5 +1,7 @@
 from numpy.typing import NDArray
-from sklearn.preprocessing import RobustScaler, MinMaxScaler, FunctionTransformer
+from numpy.lib.stride_tricks import as_strided
+from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 import joblib
@@ -166,11 +168,22 @@ def sequentialize_certain_features(
     """创建序列特征（用于LSTM）"""
     print(f"Sequentializing features, sequence length: {seq_length}")
 
+    features_np = df[feature_columns].values
+    labels_np = df[label_column].values
+    n_samples, n_features = features_np.shape
+    output_shape = (n_samples - seq_length + 1, seq_length, n_features)
     X, y = [], []
-    features = df[feature_columns]
-    for i in range(len(features) - seq_length):
-        X.append(features[i : i + seq_length])
-        y.append(df.iloc[i + seq_length - 1][label_column])
+    # 计算strides
+    item_size = features_np.itemsize
+    strides = (
+        item_size * n_features,  # 样本间步长
+        item_size * n_features,  # 时间步间步长（与样本间步长相同）
+        item_size,
+    )  # 特征间步长
+
+    # 创建视图
+    X = as_strided(features_np, shape=output_shape, strides=strides, writeable=False)
+    y = labels_np[seq_length - 1 :]
 
     print(f"Sequentializing features... done.")
     return np.array(X), np.array(y)
@@ -209,7 +222,20 @@ def scale_test(scaler, X_test: NDArray):
     return X_test_scaled
 
 
-sign_log = lambda x: np.sign(x) * np.log1p(np.abs(x))
+class SignLogTransformer(BaseEstimator, TransformerMixin):
+    """自定义的 sign-log 转换器"""
+
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return np.sign(X) * np.log(np.abs(X) + 1)
+
+    def fit_transform(self, X, y=None, **fit_params):
+        return self.transform(X)
 
 
 def scale(X_train: NDArray, X_test: NDArray):
@@ -219,10 +245,7 @@ def scale(X_train: NDArray, X_test: NDArray):
 
     volume_scaler = Pipeline(
         [
-            (
-                "sign_log",
-                FunctionTransformer(sign_log),
-            ),
+            ("sign_log", SignLogTransformer()),
             ("scale", RobustScaler()),
         ]
     )

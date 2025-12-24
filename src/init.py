@@ -53,6 +53,12 @@ def main():
         df_with_features = dp.create_all_features(df_raw)
         # print_memory_usage(f"After feature engineering stock {i}")
 
+        # Calculate the midprice return
+        # df_with_features[f"return_after_{time_delay}"] = (
+        #     df_with_features["n_midprice"].shift(-time_delay)
+        #     - df_with_features["n_midprice"]
+        # ) / (df_with_features["n_midprice"])
+
         df_with_features = df_with_features.tail(len(df_with_features) - 51)
         df_with_features = df_with_features.head(len(df_with_features) - 10)
 
