@@ -146,8 +146,8 @@ def main():
     # pt.draw_loss_curve(history)
     # pt.draw_accuracy_curve(history)
     # 保存模型
-    model.save_weights("model_weights.keras")
-    print("模型已保存为 'model_weights.keras'")
+    model.save_weights("model.weights.h5")
+    print("模型已保存为 'model.weights.h5'")
 
 
 if __name__ == "__main__":

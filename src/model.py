@@ -68,19 +68,19 @@ def build_base_model(input_shape):
 
     x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
     x = LayerNormalization()(x)
-    x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
-    x = LayerNormalization()(x)
+    # x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
+    # x = LayerNormalization()(x)
 
     x = LSTM(128, return_sequences=True)(x)
     short_cut = x
     attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
     x = LayerNormalization()(x + attention_output_1)
-    attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
-    x = LayerNormalization()(x + attention_output_2)
+    # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
+    # x = LayerNormalization()(x + attention_output_2)
 
+    x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
+    x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
     x = short_cut + x
-
-    x = Dense(256, activation="relu")(x)
     x = Dropout(0.3)(x)
 
     outputs = Flatten()(x)
