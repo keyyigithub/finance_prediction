@@ -40,7 +40,7 @@ def main():
     y_train = None
     y_test = None
 
-    for i in range(3):
+    for i in range(10):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
