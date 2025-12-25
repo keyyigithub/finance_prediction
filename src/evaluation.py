@@ -152,6 +152,17 @@ def check_feature_distributions(df: pd.DataFrame, features: list[str]):
     return pd.DataFrame(results)
 
 
+# converts the one-hot coding to labels, with threshold
+# shape of y: (n_samples, 3)
+def one_hot_to_label(y: NDArray, threshold: float):
+    y0 = y[:, 0]
+    y2 = y[:, 2]
+    labels = np.ones_like(y.shape[0], dtype=int)
+    labels[y0 - y2 > threshold] = 0
+    labels[y2 - y0 > threshold] = 0
+    return labels
+
+
 def calculate_pnl_average(df: pd.DataFrame, pred_labels: NDArray, time_delay: int):
     returns = df[f"return_after_{time_delay}"].values
     non_one_mask = pred_labels != 1

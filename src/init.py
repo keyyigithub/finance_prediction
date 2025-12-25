@@ -131,6 +131,7 @@ def main():
 
     # 预测示例
     y_pred = model.predict(X_test)
+    y_pred_custom = eval.one_hot_to_label(y_pred, 0.008)
     # pt.plot_predict_curve(y_test, y_pred)
     y_pred = np.argmax(y_pred, axis=1)
 
@@ -142,10 +143,12 @@ def main():
     # print(f"The first 20 true labels: {y_test[:20]}")
 
     test_score = eval.calculate_f_beta_multiclass(y_test, y_pred)
+    test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
     test_pnl_average = eval.calculate_pnl_average(
         df_with_features_9, y_pred, time_delay
     )
-    print(f"The f beta score on test: {test_score}")
+    print(f"The f beta score on test(default): {test_score}")
+    print(f"The f beta score on test(custom): {test_score_custom}")
     print(f"The pnl average on test: {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)
