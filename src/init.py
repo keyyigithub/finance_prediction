@@ -106,21 +106,13 @@ def main():
         df_with_features_9["n_midprice"].shift(-time_delay)
         - df_with_features_9["n_midprice"]
     ) / df_with_features_9["n_midprice"]
-    df_with_features_9[f"midprice_after_{time_delay}"] = df_with_features[
-        "n_midprice"
-    ].shift(-time_delay)
 
-    df_with_features_9[f"relabel_{time_delay}"] = eval.get_label(
-        df_with_features_9[f"midprice_after_{time_delay}"],
-        df_with_features_9["n_midprice"],
-        time_delay,
-    )
     df_with_features_9 = df_with_features_9.tail(len(df_with_features_9) - 51)
     df_with_features_9 = df_with_features_9.head(len(df_with_features_9) - 10)
     X_test, y_test = dp.sequentialize_certain_features(
         df_with_features_9,
         dp.selected_features,
-        f"relabel_{time_delay}",
+        f"label_{time_delay}",
         sequence_length,
     )
     print("-" * 50)
