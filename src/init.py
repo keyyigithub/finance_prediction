@@ -67,6 +67,7 @@ def main(time_delay=5):
         #     alpha1=0.002,
         # )
                 df_with_features = df_with_features.head(len(df_with_features) - time_delay)
+        df_with_features = df_with_features.tail(len(df_with_features) - 20)
 
         # print(eval.check_feature_distributions(df_with_features, dp.selected_features))
 
@@ -76,7 +77,11 @@ def main(time_delay=5):
             f"label_{time_delay}",
             sequence_length,
         )
+<<<<<<< HEAD
         y_single_code = eval.label_to_double_one_hot(y_single)
+=======
+        y_single = eval.label_to_double_one_hot(y_single)
+>>>>>>> 0512013 (New idea: 2-dim one-hot code as label.)
         # print_memory_usage(f"After sequentializing stock {i}")
 
         # (X_train_single, X_test_single, y_train_single, y_test_single) = dp.split(
@@ -115,7 +120,11 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
+<<<<<<< HEAD
     y_test_code = eval.label_to_double_one_hot(y_test)
+=======
+    y_test = eval.label_to_double_one_hot(y_test)
+>>>>>>> 0512013 (New idea: 2-dim one-hot code as label.)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
@@ -144,10 +153,20 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
+<<<<<<< HEAD
     # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
     # pt.plot_predict_curve(y_test, y_pred)
     y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.1)
     print(y_pred.shape)
+=======
+<<<<<<< HEAD
+    y_pred_custom = eval.one_hot_to_label(y_pred, 0.2)
+=======
+    # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
+>>>>>>> 8df0081 (New idea: 2-dim one-hot code as label.)
+    # pt.plot_predict_curve(y_test, y_pred)
+    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.01)
+>>>>>>> 0512013 (New idea: 2-dim one-hot code as label.)
 
     # X_test_original = price_scaler.inverse_transform(X_test[:, 99, 0:3].reshape(-1, 3))
 
