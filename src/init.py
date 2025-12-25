@@ -148,7 +148,7 @@ def main():
     y_pred = model.predict(X_test)
     # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
     # pt.plot_predict_curve(y_test, y_pred)
-    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.01)
+    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.1)
     print(y_pred.shape)
 
     # X_test_original = price_scaler.inverse_transform(X_test[:, 99, 0:3].reshape(-1, 3))
