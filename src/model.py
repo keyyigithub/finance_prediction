@@ -37,18 +37,18 @@ def build_conv_residual_block(input_shape):
     return model
 
 
-def build_lstm_residual_block(input_shape):
+def build_lstm_residual_block(input_shape, units=256):
     inputs = keras.Input(input_shape)
 
     shortcut = inputs
 
-    x = Bidirectional(LSTM(256, return_sequences=True, kernel_regularizer=l2(0.01)))(
+    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
         inputs
     )
-    x = Bidirectional(LSTM(256, return_sequences=True, kernel_regularizer=l2(0.01)))(
+    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
         inputs
     )
-    shortcut_reshaped = Dense(512)(shortcut)
+    shortcut_reshaped = Dense(units * 2)(shortcut)
     x = shortcut_reshaped + x
     outputs = Dropout(0.3)(x)
 
