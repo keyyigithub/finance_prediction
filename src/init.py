@@ -57,16 +57,16 @@ def main():
         #     df_with_features["n_midprice"].shift(-time_delay)
         #     - df_with_features["n_midprice"]
         # ) / (df_with_features["n_midprice"])
-        df_with_features[f"midprice_after_{time_delay}"] = df_with_features[
-            "n_midprice"
-        ].shift(-time_delay)
-
-        df_with_features[f"relabel_{time_delay}"] = eval.get_label(
-            df_with_features[f"midprice_after_{time_delay}"],
-            df_with_features["n_midprice"],
-            time_delay,
-            alpha1=0.002,
-        )
+        # df_with_features[f"midprice_after_{time_delay}"] = df_with_features[
+        #     "n_midprice"
+        # ].shift(-time_delay)
+        #
+        # df_with_features[f"relabel_{time_delay}"] = eval.get_label(
+        #     df_with_features[f"midprice_after_{time_delay}"],
+        #     df_with_features["n_midprice"],
+        #     time_delay,
+        #     alpha1=0.002,
+        # )
         df_with_features = df_with_features.tail(len(df_with_features) - 51)
         df_with_features = df_with_features.head(len(df_with_features) - 10)
 
@@ -75,9 +75,10 @@ def main():
         X_single, y_single = dp.sequentialize_certain_features(
             df_with_features,
             dp.selected_features,
-            f"relabel_{time_delay}",
+            f"label_{time_delay}",
             sequence_length,
         )
+        y_single = eval.label_to_double_one_hot(y_single)
         # print_memory_usage(f"After sequentializing stock {i}")
 
         # (X_train_single, X_test_single, y_train_single, y_test_single) = dp.split(
@@ -116,6 +117,7 @@ def main():
         f"label_{time_delay}",
         sequence_length,
     )
+    y_test = eval.label_to_double_one_hot(y_test)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
@@ -128,7 +130,7 @@ def main():
 
     # 构建模型
     input_shape = (X_train.shape[1], X_train.shape[2])
-    model = md.build_classification_model(input_shape)
+    model = md.build_classification_model(input_shape, 2)
     model.summary()
 
     # 训练模型
@@ -139,14 +141,14 @@ def main():
         epochs=5,
         batch_size=1024,
         verbose=1,
-        class_weight={0: 4, 1: 1, 2: 4},
+        # class_weight={0: 4, 1: 1, 2: 4},
     )
 
     # 预测示例
     y_pred = model.predict(X_test)
-    y_pred_custom = eval.one_hot_to_label(y_pred, 0.01)
+    # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
     # pt.plot_predict_curve(y_test, y_pred)
-    y_pred = np.argmax(y_pred, axis=1)
+    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.01)
 
     # X_test_original = price_scaler.inverse_transform(X_test[:, 99, 0:3].reshape(-1, 3))
 
@@ -156,12 +158,12 @@ def main():
     # print(f"The first 20 true labels: {y_test[:20]}")
 
     test_score = eval.calculate_f_beta_multiclass(y_test, y_pred)
-    test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+    # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
     test_pnl_average = eval.calculate_pnl_average(
         df_with_features_9, y_pred, time_delay
     )
     print(f"The f beta score on test(default): {test_score}")
-    print(f"The f beta score on test(custom): {test_score_custom}")
+    # print(f"The f beta score on test(custom): {test_score_custom}")
     print(f"The pnl average on test: {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)

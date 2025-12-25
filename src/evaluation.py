@@ -1,4 +1,3 @@
-from operator import le
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
@@ -156,7 +155,7 @@ def check_feature_distributions(df: pd.DataFrame, features: list[str]):
 
 # converts the one-hot coding to labels, with threshold
 # shape of y: (n_samples, 3)
-def one_hot_to_label(y: NDArray, threshold: float):
+def triple_one_hot_to_label(y: NDArray, threshold: float):
     y0, y1, y2 = y[:, 0], y[:, 1], y[:, 2]
     # 创建条件数组
     cond1 = y0 - y2 > threshold  # 取0的条件
@@ -180,6 +179,36 @@ def one_hot_to_label(y: NDArray, threshold: float):
     result[mask] = subset_result
 
     return result
+
+
+def double_one_hot_to_label(y: NDArray, threshold=0.001):
+    y0 = y[:, 0]
+    y1 = y[:, 1]
+
+    # 创建条件数组
+    cond1 = y0 - y1 > threshold  # 取0的条件
+    cond2 = y1 - y0 > threshold  # 取2的条件
+
+    # 使用np.select进行条件选择
+    return np.select([cond1, cond2], [0, 2], default=1)
+
+
+def label_to_double_one_hot(labels: NDArray):
+    labels = np.asarray(labels)
+
+    # 定义编码映射
+    encoding_map = np.array(
+        [[1.0, 0.0], [0.5, 0.5], [0.0, 1.0]],  # label 0  # label 1  # label 2
+        dtype=np.float32,
+    )
+
+    # 验证标签范围
+    if np.any((labels < 0) | (labels > 2)):
+        raise ValueError("标签值必须在[0, 2]范围内")
+
+    # 直接使用索引获取编码
+    # 注意：这种方法要求labels是整数，且范围在0-2
+    return encoding_map[labels.astype(int)]
 
 
 def calculate_pnl_average(df: pd.DataFrame, pred_labels: NDArray, time_delay: int):

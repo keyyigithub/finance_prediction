@@ -174,7 +174,7 @@ def add_midprice_label(df: pd.DataFrame, time_delay: int):
 
 def sequentialize_certain_features(
     df: pd.DataFrame, feature_columns: list[str], label_column: str, seq_length: int
-):
+) -> tuple[NDArray, NDArray]:
     """创建序列特征（用于LSTM）"""
     print(f"Sequentializing features, sequence length: {seq_length}")
 
