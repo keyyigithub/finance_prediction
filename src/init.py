@@ -98,7 +98,7 @@ def main():
     ) / df_with_features_9["n_midprice"]
     df_with_features_9 = df_with_features_9.tail(len(df_with_features) - 51)
     df_with_features_9 = df_with_features_9.head(len(df_with_features) - 10)
-    X_test = dp.sequentialize_certain_features(
+    X_test, y_test = dp.sequentialize_certain_features(
         df_with_features_9, dp.selected_features, f"label_{time_delay}", sequence_length
     )
 
@@ -123,7 +123,7 @@ def main():
         epochs=5,
         batch_size=1024,
         verbose=1,
-        class_weight={0: 4, 1: 1, 2: 3},
+        class_weight={0: 5, 1: 1, 2: 5},
     )
 
     # 预测示例

@@ -71,7 +71,7 @@ class FBetaScore(tf.keras.metrics.Metric):
 def get_label(y, X, time_delay):  # y可为y_test或y_pred，Day为一个数[5,10,20,40,60]
     # X = X_test[:, 99, 0]
     if time_delay in [5, 10]:
-        alpha = 0.0005
+        alpha = 0.001
     elif time_delay in [20, 40, 60]:
         alpha = 0.001
     else:
