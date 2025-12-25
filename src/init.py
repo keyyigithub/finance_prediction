@@ -65,6 +65,7 @@ def main():
             df_with_features[f"midprice_after_{time_delay}"],
             df_with_features["n_midprice"],
             time_delay,
+            alpha1=0.002,
         )
         df_with_features = df_with_features.tail(len(df_with_features) - 51)
         df_with_features = df_with_features.head(len(df_with_features) - 10)
@@ -138,7 +139,7 @@ def main():
         epochs=5,
         batch_size=1024,
         verbose=1,
-        class_weight={0: 5, 1: 1, 2: 5},
+        class_weight={0: 4, 1: 1, 2: 4},
     )
 
     # 预测示例
