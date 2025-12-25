@@ -157,10 +157,12 @@ def check_feature_distributions(df: pd.DataFrame, features: list[str]):
 def one_hot_to_label(y: NDArray, threshold: float):
     y0 = y[:, 0]
     y2 = y[:, 2]
-    labels = np.ones_like(y.shape[0], dtype=int)
-    labels[y0 - y2 > threshold] = 0
-    labels[y2 - y0 > threshold] = 0
-    return labels
+    # 创建条件数组
+    cond1 = y0 - y2 > threshold  # 取0的条件
+    cond2 = y2 - y0 > threshold  # 取2的条件
+
+    # 使用np.select进行条件选择
+    return np.select([cond1, cond2], [0, 2], default=1)
 
 
 def calculate_pnl_average(df: pd.DataFrame, pred_labels: NDArray, time_delay: int):
