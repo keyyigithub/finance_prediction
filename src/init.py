@@ -159,9 +159,13 @@ def main(time_delay=5):
     test_pnl_average = eval.calculate_pnl_average(
         df_with_features_9, y_pred, time_delay
     )
+    test_pnl_average_custom = eval.calculate_pnl_average(
+        df_with_features_9, y_pred_custom, time_delay
+    )
     print(f"The f beta score on test(default): {test_score}")
     print(f"The f beta score on test(custom): {test_score_custom}")
-    print(f"The pnl average on test: {test_pnl_average}")
+    print(f"The pnl average on test(default): {test_pnl_average}")
+    print(f"The pnl average on test(custom): {test_pnl_average_custom}")
 
     # y_train_pred = model.predict(X_train)
     # pt.plot_predict_curve(y_train, y_trai n_pred)
