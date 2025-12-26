@@ -77,9 +77,15 @@ class Predictor:
         results = []
         for df in data:
             X = self.preprocess(df)
-            y = self.model.predict(X)
-            y = np.argmax(y)
-            results.append([y])
+            pred_labels = []
+            for td in [5, 10, 20, 40, 60]:
+                self._load_weights(
+                    os.path.join(os.path.dirname(__file__), f"model_{td}.weights.h5")
+                )
+                y = self.model.predict(X)
+                pred_labels.append(y)
+
+            results.append(pred_labels)
 
         return results
 
@@ -102,16 +108,16 @@ class Predictor:
             outputs = Concatenate(axis=2)([feat_1, feat_2, feat_3, shortcut])
             return keras.Model(inputs, outputs)
 
-        def build_lstm_residual_block(input_shape):
+        def build_lstm_residual_block(input_shape, units=256):
             inputs = keras.Input(input_shape)
             shortcut = inputs
             x = Bidirectional(
-                LSTM(128, return_sequences=True, kernel_regularizer=l2(0.01))
+                LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01))
             )(inputs)
             x = Bidirectional(
-                LSTM(128, return_sequences=True, kernel_regularizer=l2(0.01))
+                LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01))
             )(inputs)
-            shortcut_reshaped = Dense(256)(shortcut)
+            shortcut_reshaped = Dense(units * 2)(shortcut)
             x = shortcut_reshaped + x
             outputs = Dropout(0.3)(x)
             return keras.Model(inputs, outputs)
@@ -130,16 +136,16 @@ class Predictor:
             # x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
             # x = LayerNormalization()(x)
 
-            x = LSTM(256, return_sequences=True)(x)
+            x = LSTM(128, return_sequences=True)(x)
             short_cut = x
-            attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+            attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
             x = LayerNormalization()(x + attention_output_1)
-            attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
-            x = LayerNormalization()(x + attention_output_2)
+            # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+            # x = LayerNormalization()(x + attention_output_2)
 
-            x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
             x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
-            short_cut = Dense(128)(short_cut)
+            x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+            short_cut = Dense(64)(short_cut)
             x = short_cut + x
             x = Dropout(0.3)(x)
 
@@ -151,15 +157,14 @@ class Predictor:
         # 构建完整模型
         inputs = keras.Input(shape=self.input_shape)
         x = build_base_model(self.input_shape)(inputs)
-        x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
+        x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
         x = Dropout(0.3)(x)
-        x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
+        x = Dense(32, activation="relu", kernel_regularizer=l2(0.01))(x)
         x = Dropout(0.3)(x)
         outputs = Dense(self.num_classes, activation="softmax")(x)
 
         self.model = keras.Model(inputs=inputs, outputs=outputs)
 
-        # 简单编译（只是为了能预测）
         self.model.compile(
             optimizer="adam",
             loss="sparse_categorical_crossentropy",
