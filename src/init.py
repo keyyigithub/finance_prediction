@@ -66,7 +66,7 @@ def main(time_delay=5):
         #     time_delay,
         #     alpha1=0.002,
         # )
-                df_with_features = df_with_features.head(len(df_with_features) - time_delay)
+        df_with_features = df_with_features.head(len(df_with_features) - time_delay)
         df_with_features = df_with_features.tail(len(df_with_features) - 20)
 
         # print(eval.check_feature_distributions(df_with_features, dp.selected_features))
@@ -108,8 +108,8 @@ def main(time_delay=5):
         - df_with_features_9["n_midprice"]
     ) / df_with_features_9["n_midprice"]
 
-    df_with_features_9 = df_with_features_9.tail(len(df_with_features_9) - 51)
-    df_with_features_9 = df_with_features_9.head(len(df_with_features_9) - 10)
+    df_with_features_9 = df_with_features_9.tail(len(df_with_features_9) - 20)
+    df_with_features_9 = df_with_features_9.head(len(df_with_features_9) - time_delay)
     X_test, y_test = dp.sequentialize_certain_features(
         df_with_features_9,
         dp.selected_features,
