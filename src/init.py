@@ -23,7 +23,7 @@ def print_memory_usage(label=""):
 # But it might take a fucking lot of time, for god's sake!
 
 
-def main():
+def main(timedelay = 5):
     print("=" * 100)
     print("~" * 100)
     print("=" * 100)
@@ -63,8 +63,8 @@ def main():
 
         df_with_features[f"relabel_continue_{time_delay}"] = ( df_with_features[f"midprice_after_{time_delay}"] / df_with_features[f"n_midprice"] - 1 ) * 200
         
-        df_with_features = df_with_features.tail(len(df_with_features) - 51)
-        df_with_features = df_with_features.head(len(df_with_features) - 10)
+        df_with_features = df_with_features.tail(len(df_with_features) - 20)
+        df_with_features = df_with_features.head(len(df_with_features) - time_delay)
 
         # print(eval.check_feature_distributions(df_with_features, dp.selected_features))
 
@@ -145,6 +145,7 @@ def main():
             y_pred,
             time_delay,
             alpha1=0.0015 * 200,
+            alpha2=0.002 * 200,
         )
     # pt.plot_predict_curve(y_test, y_pred)
     y_pred = np.argmax(y_pred, axis=1)
@@ -186,4 +187,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    for td in [5, 10, 20, 40, 60]:
+        main(td)
