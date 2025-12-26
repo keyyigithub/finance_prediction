@@ -184,8 +184,8 @@ def main(time_delay=5):
     # pt.draw_loss_curve(history)
     # pt.draw_accuracy_curve(history)
     # 保存模型
-    model.save_weights(f"model_{time_delay}.weights.h5")
-    print(f"模型已保存为 'model_{time_delay}.weights.h5'")
+    model.save_weights(f"basic_model_{time_delay}.weights.h5")
+    print(f"模型已保存为 'basic_model_{time_delay}.weights.h5'")
 
 
 if __name__ == "__main__":
