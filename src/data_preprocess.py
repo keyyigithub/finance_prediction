@@ -115,7 +115,7 @@ def create_all_features(df: pd.DataFrame):
     df["ma_cross_5_20"] = df["ma_5"] - df["ma_20"]
     df["bias_20"] = (df["n_midprice"] - df["ma_20"]) / df["ma_20"] * 100
 
-    rolling_window = 50
+    rolling_window = 20
     df["midprice_ma"] = df["n_midprice"].rolling(window=rolling_window).mean()
     df["midprice_std"] = df["n_midprice"].rolling(window=rolling_window).std()
     df["bollinger_upper"] = df["midprice_ma"] + 2 * df["midprice_std"]
