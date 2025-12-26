@@ -28,7 +28,7 @@ def main(time_delay=5):
     print("~" * 100)
     print("=" * 100)
     print("Data Preprocessing ...")
-    sequence_length = 50
+    sequence_length = 80
 
     print_memory_usage("Initial")
 
@@ -66,8 +66,7 @@ def main(time_delay=5):
         #     time_delay,
         #     alpha1=0.002,
         # )
-        df_with_features = df_with_features.tail(len(df_with_features) - 51)
-        df_with_features = df_with_features.head(len(df_with_features) - time_delay)
+                df_with_features = df_with_features.head(len(df_with_features) - time_delay)
 
         # print(eval.check_feature_distributions(df_with_features, dp.selected_features))
 
