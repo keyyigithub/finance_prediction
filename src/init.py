@@ -147,7 +147,7 @@ def main(time_delay=5):
     y_pred = model.predict(X_test)
     # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
     # pt.plot_predict_curve(y_test, y_pred)
-    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.1)
+    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.45)
     print(y_pred.shape)
     # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
     # pt.plot_predict_curve(y_test, y_pred)
