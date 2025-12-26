@@ -64,7 +64,8 @@ def main(time_delay=5):
             df_with_features[f"midprice_after_{time_delay}"],
             df_with_features["n_midprice"],
             time_delay,
-            alpha1=0.002,
+            alpha1=0.0015,
+            alpha2=0.002,
         )
         df_with_features = df_with_features.tail(len(df_with_features) - 20)
         df_with_features = df_with_features.head(len(df_with_features) - time_delay)
