@@ -72,7 +72,7 @@ class Predictor:
         ]
 
         self.input_shape = (80, 25)
-        self.num_classes = 2
+        self.num_classes = 3
         self._build_model_architecture()
         self.balance_scaler = joblib.load(
             os.path.join(os.path.dirname(__file__), "balance.joblib")
