@@ -141,7 +141,7 @@ class Predictor:
             inputs = keras.Input(input_shape)
             x = build_conv_residual_block(input_shape)(inputs)
             x = LayerNormalization()(x)
-            x = Dropout(0.3)(x)
+            # x = Dropout(0.3)(x)
             # x = build_conv_residual_block(input_shape)(inputs)
             # x = LayerNormalization()(x)
             # x = Dropout(0.3)(x)
@@ -162,7 +162,7 @@ class Predictor:
             x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
             short_cut = Dense(64)(short_cut)
             x = short_cut + x
-            x = Dropout(0.3)(x)
+            # x = Dropout(0.3)(x)
 
             outputs = Flatten()(x)
 
@@ -173,9 +173,9 @@ class Predictor:
         inputs = keras.Input(shape=self.input_shape)
         x = build_base_model(self.input_shape)(inputs)
         x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
-        x = Dropout(0.3)(x)
+        # x = Dropout(0.3)(x)
         x = Dense(32, activation="relu", kernel_regularizer=l2(0.01))(x)
-        x = Dropout(0.3)(x)
+        # x = Dropout(0.3)(x)
         outputs = Dense(self.num_classes, activation="softmax")(x)
 
         self.model = keras.Model(inputs=inputs, outputs=outputs)
