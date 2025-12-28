@@ -139,19 +139,22 @@ def main(time_delay=5):
     # 预测示例
     y_pred = model.predict(X_test)
     for i in range(10):
-        thres = i / 10
-        print(f"Threshold = {thres}")
-        y_pred_l = eval.double_one_hot_to_label(y_pred, threshold=thres)
-        print(y_pred_l.shape)
+        print("-" * 50)
+        perc = i / 10
+        print(f"Percentile = {perc}")
+        y_pred_l = eval.adaptive_threshold_double_one_hot_to_label(
+            y_pred, adaptive_percentile=perc
+        )
+        # print(y_pred_l.shape)
 
         test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
         # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
         test_pnl_average = eval.calculate_pnl_average(
             df_with_features_9, y_pred_l, time_delay
         )
-        print(f"The f beta score on test(of threshold {thres}): {test_score}")
+        print(f"The f beta score on test(of Percentile {perc}): {test_score}")
         # print(f"The f beta score on test(custom): {test_score_custom}")
-        print(f"The pnl average on test(of threshold {thres}): {test_pnl_average}")
+        print(f"The pnl average on test(of Percentile {perc}): {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)
     # pt.plot_predict_curve(y_train, y_trai n_pred)

@@ -193,6 +193,26 @@ def double_one_hot_to_label(y: NDArray, threshold=0.001):
     return np.select([cond1, cond2], [0, 2], default=1)
 
 
+def adaptive_threshold_double_one_hot_to_label(y: NDArray, adaptive_percentile=0.3):
+    """
+    自适应阈值方法：根据预测分布的百分位数确定阈值
+    """
+    y0 = y[:, 0]
+    y1 = y[:, 1]
+
+    # 计算预测置信度的差异
+    conf_diff = np.abs(y0 - y1)
+
+    # 使用百分位数作为阈值（例如，差异小于30%分位数的视为不确定）
+    threshold = np.percentile(conf_diff, adaptive_percentile * 100)
+
+    # 创建条件数组
+    cond1 = y0 - y1 > threshold  # 取0的条件
+    cond2 = y1 - y0 > threshold  # 取2的条件
+
+    return np.select([cond1, cond2], [0, 2], default=1)
+
+
 def label_to_double_one_hot(labels: NDArray):
     labels = np.asarray(labels)
 
