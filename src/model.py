@@ -37,18 +37,18 @@ def build_conv_residual_block(input_shape):
     return model
 
 
-def build_lstm_residual_block(input_shape):
+def build_lstm_residual_block(input_shape, units=256):
     inputs = keras.Input(input_shape)
 
     shortcut = inputs
 
-    x = Bidirectional(LSTM(256, return_sequences=True, kernel_regularizer=l2(0.01)))(
+    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
         inputs
     )
-    x = Bidirectional(LSTM(256, return_sequences=True, kernel_regularizer=l2(0.01)))(
+    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
         inputs
     )
-    shortcut_reshaped = Dense(512)(shortcut)
+    shortcut_reshaped = Dense(units * 2)(shortcut)
     x = shortcut_reshaped + x
     outputs = Dropout(0.3)(x)
 
@@ -66,21 +66,21 @@ def build_base_model(input_shape):
     # x = LayerNormalization()(x)
     # x = Dropout(0.3)(x)
 
-    x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
+    x = build_lstm_residual_block((x.shape[1], x.shape[2]), units=128)(x)
     x = LayerNormalization()(x)
     # x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
     # x = LayerNormalization()(x)
 
-    x = LSTM(256, return_sequences=True)(x)
+    x = LSTM(128, return_sequences=True)(x)
     short_cut = x
-    attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+    attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
     x = LayerNormalization()(x + attention_output_1)
-    attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
-    x = LayerNormalization()(x + attention_output_2)
+    # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+    # x = LayerNormalization()(x + attention_output_2)
 
-    x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
     x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
-    short_cut = Dense(128)(short_cut)
+    x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+    short_cut = Dense(64)(short_cut)
     x = short_cut + x
     x = Dropout(0.3)(x)
 
@@ -95,9 +95,9 @@ def build_classification_model(input_shape, num_classes=3):
     model = Sequential(
         [
             build_base_model(input_shape),
-            Dense(256, activation="relu", kernel_regularizer=l2(0.01)),
+            Dense(64, activation="relu", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
-            Dense(128, activation="relu", kernel_regularizer=l2(0.01)),
+            Dense(32, activation="relu", kernel_regularizer=l2(0.01)),
             Dropout(0.3),
             Dense(num_classes, activation="softmax"),  # 3个类别：0,1,2
         ]

@@ -2,6 +2,7 @@ from json import load
 import os
 import joblib
 from typing import List
+from numpy.typing import NDArray
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     LSTM,
@@ -23,6 +24,18 @@ import numpy as np
 def log_transform(df: pd.DataFrame, features):
     df[features] = df[features].apply(lambda x: np.sign(x) * np.log1p(np.abs(x)))
     return df
+
+
+def double_one_hot_to_label(y: NDArray, threshold=0.001):
+    y0 = y[:, 0]
+    y1 = y[:, 1]
+
+    # 创建条件数组
+    cond1 = y0 - y1 > threshold  # 取0的条件
+    cond2 = y1 - y0 > threshold  # 取2的条件
+
+    # 使用np.select进行条件选择
+    return np.select([cond1, cond2], [0, 2], default=1)
 
 
 class Predictor:
@@ -58,7 +71,7 @@ class Predictor:
             "time_cos",  # 时间余弦编码
         ]
 
-        self.input_shape = (50, 25)
+        self.input_shape = (80, 25)
         self.num_classes = 3
         self._build_model_architecture()
         self.balance_scaler = joblib.load(
@@ -67,7 +80,6 @@ class Predictor:
         self.volume_scaler = joblib.load(
             os.path.join(os.path.dirname(__file__), "volume.joblib")
         )
-        self._load_weights(os.path.join(os.path.dirname(__file__), "model.weights.h5"))
         # Used when testing
         # self.balance_scaler = joblib.load("./balance.joblib")
         # self.volume_scaler = joblib.load("./volume.joblib")
@@ -77,9 +89,18 @@ class Predictor:
         results = []
         for df in data:
             X = self.preprocess(df)
-            y = self.model.predict(X)
-            y = np.argmax(y)
-            results.append([y])
+            pred_labels = []
+            for td in [5, 10, 20, 40, 60]:
+                self._load_weights(
+                    os.path.join(
+                        os.path.dirname(__file__), f"onehot_model_{td}.weights.h5"
+                    )
+                )
+                y = self.model.predict(X)
+                y = double_one_hot_to_label(y, threshold=0.45)
+                pred_labels.append(y)
+
+            results.append(pred_labels)
 
         return results
 
@@ -102,16 +123,16 @@ class Predictor:
             outputs = Concatenate(axis=2)([feat_1, feat_2, feat_3, shortcut])
             return keras.Model(inputs, outputs)
 
-        def build_lstm_residual_block(input_shape):
+        def build_lstm_residual_block(input_shape, units=256):
             inputs = keras.Input(input_shape)
             shortcut = inputs
             x = Bidirectional(
-                LSTM(128, return_sequences=True, kernel_regularizer=l2(0.01))
+                LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01))
             )(inputs)
             x = Bidirectional(
-                LSTM(128, return_sequences=True, kernel_regularizer=l2(0.01))
+                LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01))
             )(inputs)
-            shortcut_reshaped = Dense(256)(shortcut)
+            shortcut_reshaped = Dense(units * 2)(shortcut)
             x = shortcut_reshaped + x
             outputs = Dropout(0.3)(x)
             return keras.Model(inputs, outputs)
@@ -120,28 +141,28 @@ class Predictor:
             inputs = keras.Input(input_shape)
             x = build_conv_residual_block(input_shape)(inputs)
             x = LayerNormalization()(x)
-            x = Dropout(0.3)(x)
+            # x = Dropout(0.3)(x)
             # x = build_conv_residual_block(input_shape)(inputs)
             # x = LayerNormalization()(x)
             # x = Dropout(0.3)(x)
 
-            x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
+            x = build_lstm_residual_block((x.shape[1], x.shape[2]), units=128)(x)
             x = LayerNormalization()(x)
             # x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
             # x = LayerNormalization()(x)
 
-            x = LSTM(256, return_sequences=True)(x)
+            x = LSTM(128, return_sequences=True)(x)
             short_cut = x
-            attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+            attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
             x = LayerNormalization()(x + attention_output_1)
-            attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
-            x = LayerNormalization()(x + attention_output_2)
+            # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
+            # x = LayerNormalization()(x + attention_output_2)
 
-            x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
             x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
-            short_cut = Dense(128)(short_cut)
+            x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+            short_cut = Dense(64)(short_cut)
             x = short_cut + x
-            x = Dropout(0.3)(x)
+            # x = Dropout(0.3)(x)
 
             outputs = Flatten()(x)
 
@@ -151,19 +172,17 @@ class Predictor:
         # 构建完整模型
         inputs = keras.Input(shape=self.input_shape)
         x = build_base_model(self.input_shape)(inputs)
-        x = Dense(256, activation="relu", kernel_regularizer=l2(0.01))(x)
-        x = Dropout(0.3)(x)
-        x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
-        x = Dropout(0.3)(x)
+        x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+        # x = Dropout(0.3)(x)
+        x = Dense(32, activation="relu", kernel_regularizer=l2(0.01))(x)
+        # x = Dropout(0.3)(x)
         outputs = Dense(self.num_classes, activation="softmax")(x)
 
         self.model = keras.Model(inputs=inputs, outputs=outputs)
 
-        # 简单编译（只是为了能预测）
         self.model.compile(
             optimizer="adam",
-            loss="sparse_categorical_crossentropy",
-            metrics=["accuracy"],
+            loss="mse",
         )
 
     def _load_weights(self, weights_path):
@@ -250,7 +269,7 @@ class Predictor:
         df["ma_cross_5_20"] = df["ma_5"] - df["ma_20"]
         df["bias_20"] = (df["n_midprice"] - df["ma_20"]) / df["ma_20"] * 100
 
-        rolling_window = 50
+        rolling_window = 20
         df["midprice_ma"] = df["n_midprice"].rolling(window=rolling_window).mean()
         df["midprice_std"] = df["n_midprice"].rolling(window=rolling_window).std()
         df["bollinger_upper"] = df["midprice_ma"] + 2 * df["midprice_std"]
@@ -299,7 +318,7 @@ class Predictor:
         X[:, 19:21] = self.volume_scaler.transform(X[:, 19:21])
 
         X = X.reshape(1, X.shape[0], X.shape[1])
-        X = X[:, 50:, :]
+        X = X[:, 20:, :]
         return X
 
 

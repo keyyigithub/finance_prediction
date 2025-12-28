@@ -176,7 +176,7 @@ def main(time_delay = 5):
             print(f"alpha: {alpha_2}") 
 
     # y_train_pred = model.predict(X_train)
-    # pt.plot_predict_curve(y_train, y_train_pred)
+    # pt.plot_predict_curve(y_train, y_trai n_pred)
     # y_train_pred = np.argmax(y_train_pred, axis=1)
     # X_train_original = price_scaler.inverse_transform(
     #     X_train[:, 99, 0:3].reshape(-1, 3)
