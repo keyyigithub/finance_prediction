@@ -213,6 +213,36 @@ def adaptive_threshold_double_one_hot_to_label(y: NDArray, adaptive_percentile=0
     return np.select([cond1, cond2], [0, 2], default=1)
 
 
+def adaptive_decision_with_uncertainty(y_pred_alpha, base_threshold=0.001):
+    """
+    基于不确定性的自适应决策
+    y_pred_alpha: Dirichlet分布参数α, shape=(n_samples,     1)
+    """
+    # 计算预测概率和不确定性
+    S = np.sum(y_pred_alpha, axis=1, keepdims=True)
+    prob = y_pred_alpha / S
+    uncertainty = 2.0 / S.flatten()  # 对于2类问题
+
+    # 概率差异
+    prob_diff = np.abs(prob[:, 0] - prob[:, 1])
+
+    # 不确定性自适应阈值
+    # 不确定性高时使用更保守的阈值，避免错误预测
+    adaptive_threshold = base_threshold * (1 + uncertainty)
+
+    # 创建条件
+    cond_buy = prob[:, 1] - prob[:, 0] > adaptive_threshold
+    cond_sell = prob[:, 0] - prob[:, 1] > adaptive_threshold
+
+    # 决策
+    decisions = np.ones(len(prob))  # 默认持币（类别1）
+    decisions[cond_buy] = 2  # 买入
+    decisions[cond_sell] = 0  # 卖出
+
+    # 同时返回不确定性，可用于风险控制
+    return decisions, uncertainty, prob_diff
+
+
 def label_to_double_one_hot(labels: NDArray):
     labels = np.asarray(labels)
 
