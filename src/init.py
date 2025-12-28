@@ -138,29 +138,20 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
-    # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
-    # pt.plot_predict_curve(y_test, y_pred)
-    y_pred = eval.double_one_hot_to_label(y_pred, threshold=0.45)
-    print(y_pred.shape)
-    # y_pred_custom = eval.triple_one_hot_to_label(y_pred, 0.01)
-    # pt.plot_predict_curve(y_test, y_pred)
-    # print(y_pred.shape)
+    for i in range(10):
+        thres = i / 10
+        print(f"Threshold = {thres}")
+        y_pred_l = eval.double_one_hot_to_label(y_pred, threshold=thres)
+        print(y_pred_l.shape)
 
-    # X_test_original = price_scaler.inverse_transform(X_test[:, 99, 0:3].reshape(-1, 3))
-
-    # y_pred = eval.get_label(y_pred, X_test_original[:, 1], 5)
-    # y_test = eval.get_label(y_test, X_test_original[:, 1], 5)
-    # print(f"The first 20 pred labels: {y_pred[:20]}")
-    # print(f"The first 20 true labels: {y_test[:20]}")
-
-    test_score = eval.calculate_f_beta_multiclass(y_test, y_pred)
-    # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
-    test_pnl_average = eval.calculate_pnl_average(
-        df_with_features_9, y_pred, time_delay
-    )
-    print(f"The f beta score on test(default): {test_score}")
-    # print(f"The f beta score on test(custom): {test_score_custom}")
-    print(f"The pnl average on test: {test_pnl_average}")
+        test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
+        # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+        test_pnl_average = eval.calculate_pnl_average(
+            df_with_features_9, y_pred_l, time_delay
+        )
+        print(f"The f beta score on test(of threshold {thres}): {test_score}")
+        # print(f"The f beta score on test(custom): {test_score_custom}")
+        print(f"The pnl average on test(of threshold {thres}): {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)
     # pt.plot_predict_curve(y_train, y_trai n_pred)
