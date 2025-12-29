@@ -213,7 +213,7 @@ def adaptive_threshold_double_one_hot_to_label(y: NDArray, adaptive_percentile=0
     return np.select([cond1, cond2], [0, 2], default=1)
 
 
-def adaptive_decision_with_uncertainty(y_pred_alpha, adaptive_percentile=0.001):
+def adaptive_decision_with_uncertainty(y_pred_alpha, base_threshold=0.001):
     """
     基于不确定性的自适应决策
     y_pred_alpha: Dirichlet分布参数α, shape=(n_samples,     1)
@@ -228,7 +228,6 @@ def adaptive_decision_with_uncertainty(y_pred_alpha, adaptive_percentile=0.001):
 
     # 不确定性自适应阈值
     # 不确定性高时使用更保守的阈值，避免错误预测
-    base_threshold = np.percentile(prob_diff, adaptive_percentile * 100)
     adaptive_threshold = base_threshold * (1 + uncertainty)
 
     # 创建条件

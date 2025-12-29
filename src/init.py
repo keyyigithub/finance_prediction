@@ -122,7 +122,7 @@ def main(time_delay=5):
 
     # 构建模型
     input_shape = (X_train.shape[1], X_train.shape[2])
-    model = md.build_classification_model(input_shape, 2)
+    model = md.build_evidential_model(input_shape, 2)
     model.summary()
 
     # 训练模型
@@ -140,10 +140,10 @@ def main(time_delay=5):
     y_pred = model.predict(X_test)
     for i in range(10):
         print("-" * 50)
-        perc = i / 10
-        print(f"Percentile = {perc}")
+        thres = 0.001 + i / 5000
+        print(f"Threshold = {thres}")
         y_pred_l = eval.adaptive_threshold_double_one_hot_to_label(
-            y_pred, adaptive_percentile=perc
+            y_pred, adaptive_percentile=thres
         )
         # print(y_pred_l.shape)
 
@@ -152,9 +152,9 @@ def main(time_delay=5):
         test_pnl_average = eval.calculate_pnl_average(
             df_with_features_9, y_pred_l, time_delay
         )
-        print(f"The f beta score on test(of Percentile {perc}): {test_score}")
+        print(f"The f beta score on test(of Threshold {thres}): {test_score}")
         # print(f"The f beta score on test(custom): {test_score_custom}")
-        print(f"The pnl average on test(of Percentile {perc}): {test_pnl_average}")
+        print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)
     # pt.plot_predict_curve(y_train, y_trai n_pred)

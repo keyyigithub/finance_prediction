@@ -138,7 +138,7 @@ def build_continuous_model(input_shape):
     return model
 
 
-def build_evidential_model(input_shape):
+def build_evidential_model(input_shape, num_classes=3):
     inputs = keras.Input(input_shape)
 
     # 特征提取（复用您现有的base_model）
@@ -151,7 +151,7 @@ def build_evidential_model(input_shape):
     x = Dropout(0.3)(x)
 
     # 证据输出（2个正数）
-    evidence = Dense(2, activation="softplus", name="evidence")(x)
+    evidence = Dense(num_classes, activation="softplus", name="evidence")(x)
 
     # Dirichlet参数 α = evidence + 1
     alpha = keras.layers.Lambda(lambda e: e + 1.0, name="alpha")(evidence)
