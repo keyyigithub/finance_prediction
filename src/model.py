@@ -147,8 +147,8 @@ def new_mse():
         pm = y_pred * y_true  # product of prediction and true value
         
         # 分离正负错误
-        correct_error = tf.where(pm >= 0, error, 0)  # 同号（预测和真实值符号相同）
-        wrong_error = tf.where(pm < 0, -error, 0)    # 异号（预测和真实值符号相反）
+        correct_error = tf.where(pm >= 0 or error <=0.005, error, 0)  # 同号（预测和真实值符号相同）
+        wrong_error = tf.where(pm < 0 and error > 0.005, -error, 0)    # 异号（预测和真实值符号相反）
         
         # 分别加权计算损失
         loss_value = (10.0 * tf.square(wrong_error) + 
