@@ -141,7 +141,7 @@ def main(time_delay=5):
         validation_data=(X_test, y_test),
         epochs=0,
         batch_size=1024,
-        callback=[early_stopping],
+        callbacks=[early_stopping],
     )
 
     # 预测示例
