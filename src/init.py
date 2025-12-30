@@ -4,6 +4,7 @@ import data_preprocess as dp
 import evaluation as eval
 import pandas as pd
 import numpy as np
+from tensorflow.keras.callbacks import EarlyStopping
 
 
 def print_memory_usage(label=""):
@@ -18,14 +19,9 @@ def print_memory_usage(label=""):
 
 def main(time_delay=5):
     print("=" * 101)
-    print("~" * 38 + f"Time delay = {time_delay}" + "~" * 38)
+    print("~" * 40 + f" Time delay = {time_delay} " + "~" * 40)
     print("=" * 101)
 
-
-def main(time_delay=5):
-    print("=" * 100)
-    print("~" * 100)
-    print("=" * 100)
     print("Data Preprocessing ...")
     sequence_length = 80
 
@@ -37,7 +33,7 @@ def main(time_delay=5):
     y_train = None
     y_test = None
 
-    for i in range(1):
+    for i in range(9):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
@@ -116,7 +112,7 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
-    y_test_code = eval.label_to_double_one_hot(y_test)
+    # y_test_code = eval.label_to_double_one_hot(y_test)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
@@ -131,7 +127,13 @@ def main(time_delay=5):
     input_shape = (X_train.shape[1], X_train.shape[2])
     model = md.build_continuous_model(input_shape)
     model.summary()
-
+    early_stopping = EarlyStopping(
+        monitor="val_loss",  # 监控验证集损失
+        patience=1,  # 容忍多少个epoch没有改善
+        restore_best_weights=True,  # 恢复最佳权重
+        mode="min",  # 最小化指标
+        verbose=1,
+    )
     # 训练模型
     history = model.fit(
         X_train,
@@ -139,6 +141,7 @@ def main(time_delay=5):
         validation_data=(X_test, y_test),
         epochs=0,
         batch_size=1024,
+        callback=[early_stopping],
     )
 
     # 预测示例
