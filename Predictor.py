@@ -115,7 +115,7 @@ class Predictor:
                 )
                 y = self.model.predict(X)
                 y = get_label(y, np.zeros(len(y)), td, 0.0019 * 200, 0.0019 * 200)
-                pred_labels.append(y)
+                pred_labels.append(y[0])
 
             results.append(pred_labels)
 
@@ -343,12 +343,12 @@ def test():
     pred = Predictor()
     df = pd.read_csv("./merged_data/merged_0.csv")
     data = []
-    for i in range(10):
+    for i in range(100):
         data.append(df.iloc[i : 100 + i])
 
     result = pred.predict(data)
-    print(df.iloc[99:109]["label_5"])
     print(result)
+    print(np.any(np.isnan(np.asarray(result))))
 
     pass
 
