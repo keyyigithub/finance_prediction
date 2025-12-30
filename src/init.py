@@ -1,25 +1,11 @@
-import plotter as pt
-import model as md
-import data_preprocess as dp
-import evaluation as eval
-import pandas as pd
-import numpy as np
 
-
-def print_memory_usage(label=""):
-    """Print current memory usage for monitoring"""
-    import psutil
-    import os
-
-    process = psutil.Process(os.getpid())
-    mem_info = process.memory_info()
-    print(f"{label} - Memory usage: {mem_info.rss / 1024 / 1024:.2f} MB")
 
 
 def main(time_delay=5):
     print("=" * 101)
-    print("~" * 38 + f"Time delay = {time_delay}" + "~" * 38)
+    print("~" * 40 + f" Time delay = {time_delay} " + "~" * 40)
     print("=" * 101)
+
     print("Data Preprocessing ...")
     sequence_length = 80
 
@@ -49,16 +35,6 @@ def main(time_delay=5):
         #     df_with_features["n_midprice"].shift(-time_delay)
         #     - df_with_features["n_midprice"]
         # ) / (df_with_features["n_midprice"])
-        # df_with_features[f"midprice_after_{time_delay}"] = df_with_features[
-        #     "n_midprice"
-        # ].shift(-time_delay)
-        #
-        # df_with_features[f"relabel_{time_delay}"] = eval.get_label(
-        #     df_with_features[f"midprice_after_{time_delay}"],
-        #     df_with_features["n_midprice"],
-        #     time_delay,
-        #     alpha1=0.002,
-        # )
         df_with_features = df_with_features.head(len(df_with_features) - time_delay)
         df_with_features = df_with_features.tail(len(df_with_features) - 20)
 
@@ -109,7 +85,7 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
-    y_test_code = eval.label_to_double_one_hot(y_test)
+    # y_test_code = eval.label_to_double_one_hot(y_test)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
@@ -124,7 +100,13 @@ def main(time_delay=5):
     input_shape = (X_train.shape[1], X_train.shape[2])
     model = md.build_evidential_model(input_shape, 2)
     model.summary()
-
+    early_stopping = EarlyStopping(
+        monitor="val_loss",  # 监控验证集损失
+        patience=1,  # 容忍多少个epoch没有改善
+        restore_best_weights=True,  # 恢复最佳权重
+        mode="min",  # 最小化指标
+        verbose=1,
+    )
     # 训练模型
     history = model.fit(
         X_train,
@@ -132,8 +114,12 @@ def main(time_delay=5):
         validation_data=(X_test, y_test_code),
         epochs=5,
         batch_size=1024,
+<<<<<<< HEAD
         verbose=1,
         # class_weight={0: 4, 1: 1, 2: 4},
+=======
+        callback=[early_stopping],
+>>>>>>> 835da83 (Early stopping)
     )
 
     # 预测示例
