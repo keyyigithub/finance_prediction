@@ -7,6 +7,7 @@ from tensorflow.keras.layers import (
     Conv1D,
     LayerNormalization,
     Concatenate,
+    MaxPooling1D,
     MultiHeadAttention,
     Flatten,
     Bidirectional,
@@ -58,9 +59,11 @@ def build_base_model(input_shape):
     x = build_conv_residual_block(input_shape)(inputs)
     x = LayerNormalization()(x)
     # x = Dropout(0.3)(x)
+    x = MaxPooling1D(pool_size=2)(x)
     # x = build_conv_residual_block(input_shape)(inputs)
     # x = LayerNormalization()(x)
     # x = Dropout(0.3)(x)
+    # x = MaxPooling1D(pool_size=2)(x)
 
     x = build_lstm_residual_block((x.shape[1], x.shape[2]), units=128)(x)
     x = LayerNormalization()(x)
