@@ -91,16 +91,15 @@ def build_base_model(input_shape):
 
 # Get classification model with compiling
 def build_classification_model(input_shape, num_classes=3):
-    model = Sequential(
-        [
-            build_base_model(input_shape),
-            Dense(64, activation="relu", kernel_regularizer=l2(0.01)),
-            Dropout(0.3),
-            Dense(32, activation="relu", kernel_regularizer=l2(0.01)),
-            Dropout(0.3),
-            Dense(num_classes, activation="softmax"),  # 3个类别：0,1,2
-        ]
-    )
+
+    inputs = keras.Input(input_shape)
+    x = build_base_model(input_shape)(inputs)
+    x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
+    x = Dense(32, activation="relu", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
+    outputs = Dense(num_classes, activation="softmax")(x)
+    model = keras.Model(inputs, outputs)
 
     optimizer = keras.optimizers.Adam(
         learning_rate=0.0001,
@@ -119,16 +118,16 @@ def build_classification_model(input_shape, num_classes=3):
 
 # Get model that process continuous data like n_midprice
 def build_continuous_model(input_shape):
-    model = Sequential(
-        [
-            build_base_model(input_shape),
-            Dense(64, activation="tanh", kernel_regularizer=l2(0.01)),
-            Dropout(0.3),
-            Dense(32, activation="tanh", kernel_regularizer=l2(0.01)),
-            Dropout(0.3),
-            Dense(1, activation="tanh"),  # 3个类别：0,1,2
-        ]
-    )
+
+    inputs = keras.Input(input_shape)
+    x = build_base_model(input_shape)(inputs)
+    x = Dense(64, activation="tanh", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
+    x = Dense(32, activation="tanh", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
+    outputs = Dense(1, activation="tanh")(x)
+    model = keras.Model(inputs, outputs)
+
     optimizer = keras.optimizers.Adam(
         learning_rate=0.0001,
         beta_1=0.9,
