@@ -1,8 +1,5 @@
-import evaluation as eval
-import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     LSTM,
     Dense,
@@ -60,13 +57,13 @@ def build_base_model(input_shape):
     inputs = keras.Input(input_shape)
     x = build_conv_residual_block(input_shape)(inputs)
     x = LayerNormalization()(x)
-    #x = Dropout(0.3)(x)
+    # x = Dropout(0.3)(x)
     # x = build_conv_residual_block(input_shape)(inputs)
     # x = LayerNormalization()(x)
     # x = Dropout(0.3)(x)
 
-    #x = build_lstm_residual_block((x.shape[1], x.shape[2]), units=128)(x)
-    #x = LayerNormalization()(x)
+    # x = build_lstm_residual_block((x.shape[1], x.shape[2]), units=128)(x)
+    # x = LayerNormalization()(x)
     # x = build_lstm_residual_block((x.shape[1], x.shape[2]))(x)
     # x = LayerNormalization()(x)
 
@@ -77,11 +74,11 @@ def build_base_model(input_shape):
     # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
     # x = LayerNormalization()(x + attention_output_2)
 
+    # x = Dense(128, activation="tanh", kernel_regularizer=l2(0.01))(x)
     x = Dense(64, activation="tanh", kernel_regularizer=l2(0.01))(x)
-    # x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
     short_cut = Dense(64)(short_cut)
     x = short_cut + x
-    x = Dropout(0.1)(x)
+    x = Dropout(0.3)(x)
 
     outputs = Flatten()(x)
 
@@ -135,28 +132,35 @@ def build_continuous_model(input_shape):
         clipnorm=1.0,  # 梯度裁剪，防止梯度爆炸
     )
     model.compile(
-        optimizer="adam",
-        loss=new_mse(),
+        optimizer=optimizer,
+        loss="mse",
     )
 
     return model
+
 
 def new_mse():
     def loss(y_true, y_pred):
         error = y_pred - y_true
         pm = y_pred * y_true  # product of prediction and true value
-        
+
         # 分离正负错误
-        correct_error = tf.where(pm >= 0 or error <=0.005, error, 0)  # 同号（预测和真实值符号相同）
-        wrong_error = tf.where(pm < 0 and error > 0.005, -error, 0)    # 异号（预测和真实值符号相反）
-        
+        correct_error = tf.where(
+            pm >= 0 or error <= 0.005, error, 0
+        )  # 同号（预测和真实值符号相同）
+        wrong_error = tf.where(
+            pm < 0 and error > 0.005, -error, 0
+        )  # 异号（预测和真实值符号相反）
+
         # 分别加权计算损失
-        loss_value = (10.0 * tf.square(wrong_error) + 
-                     tf.square(correct_error))  # 注意：是10.0，不是10t
-        
+        loss_value = 10.0 * tf.square(wrong_error) + tf.square(
+            correct_error
+        )  # 注意：是10.0，不是10t
+
         return tf.reduce_mean(loss_value)
-    
+
     return loss
+
 
 def build_evidential_model(input_shape):
     inputs = keras.Input(input_shape)
