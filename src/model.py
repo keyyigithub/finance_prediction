@@ -58,7 +58,7 @@ def build_base_model(input_shape):
     inputs = keras.Input(input_shape)
     x = build_conv_residual_block(input_shape)(inputs)
     x = LayerNormalization()(x)
-    # x = Dropout(0.3)(x)
+    x = Dropout(0.3)(x)
     x = MaxPooling1D(pool_size=2)(x)
     # x = build_conv_residual_block(input_shape)(inputs)
     # x = LayerNormalization()(x)
@@ -71,6 +71,7 @@ def build_base_model(input_shape):
     # x = LayerNormalization()(x)
 
     x = LSTM(128, return_sequences=True)(x)
+    # x = Dropout(0.3)(x)
     short_cut = x
     # attention_output_1 = MultiHeadAttention(num_heads=1, key_dim=64)(x, x)
     # x = LayerNormalization()(x + attention_output_1)
@@ -142,27 +143,13 @@ def build_continuous_model(input_shape):
     return model
 
 
-def new_mse():
-    def loss(y_true, y_pred):
-        error = y_pred - y_true
-        pm = y_pred * y_true  # product of prediction and true value
-
-        # 分离正负错误
-        correct_error = tf.where(
-            pm >= 0 or error <= 0.005, error, 0
-        )  # 同号（预测和真实值符号相同）
-        wrong_error = tf.where(
-            pm < 0 and error > 0.005, -error, 0
-        )  # 异号（预测和真实值符号相反）
-
-        # 分别加权计算损失
-        loss_value = 10.0 * tf.square(wrong_error) + tf.square(
-            correct_error
-        )  # 注意：是10.0，不是10t
-
-        return tf.reduce_mean(loss_value)
-
-    return loss
+def new_mse(y_true, y_pred):
+    # 使用TensorFlow的操作
+    error = tf.sign(y_pred) * tf.math.log1p(tf.abs(y_pred)) - tf.sign(
+        y_true
+    ) * tf.math.log1p(tf.abs(y_true))
+    loss_value = tf.square(error)
+    return tf.reduce_mean(loss_value)
 
 
 def build_evidential_model(input_shape):
