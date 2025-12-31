@@ -2,16 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_predict_curve(y_true, y_pred):
+def plot_predict_curve(y_true, y_pred, label: str = "pnl"):
     plt.figure(figsize=(14, 7))
     plt.plot(y_true, label="True Curve")
     plt.plot(y_pred, label="Prediction Curve")
     plt.title("Prediction v.s. Truth")
     plt.xlabel("Ticks")
-    plt.ylabel("Midprice")
+    plt.ylabel(f"{label}")
     plt.legend()
     plt.grid(True)
 
+    plt.savefig(f"predict_curve_of_{label}.pdf")
+    print(f"The figure saved to predict_curve_of_{label}.pdf")
     plt.show()
 
 

@@ -31,7 +31,7 @@ def main(time_delay=5):
     X_train = None
     X_test = None
     y_train = None
-    y_test = None
+    y_test_l = None
 
     for i in range(9):
 
@@ -106,19 +106,28 @@ def main(time_delay=5):
 
     df_with_features_9 = df_with_features_9.tail(len(df_with_features_9) - 20)
     df_with_features_9 = df_with_features_9.head(len(df_with_features_9) - time_delay)
-    X_test, y_test = dp.sequentialize_certain_features(
+    X_test, y_test_l = dp.sequentialize_certain_features(
         df_with_features_9,
         dp.selected_features,
         f"label_{time_delay}",
         sequence_length,
     )
+    df_with_features_9[f"relabel_continue_{time_delay}"] = (
+        df_with_features_9[f"midprice_after_{time_delay}"]
+        / df_with_features_9[f"n_midprice"]
+        - 1
+    ) * 200
+    y_test = df_with_features_9[f"relabel_continue_{time_delay}"].values[
+        sequence_length - 1 :
+    ]
+
     # y_test_code = eval.label_to_double_one_hot(y_test)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
     print_memory_usage("Final")
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
-    print(f"测试集形状: {X_test.shape}, {y_test.shape}")
+    print(f"测试集形状: {X_test.shape}, {y_test_l.shape}")
 
     print("=" * 100)
     print("Data Preprocessing ... Done.")
@@ -138,7 +147,7 @@ def main(time_delay=5):
     history = model.fit(
         X_train,
         y_train,
-        validation_data=(X_test, y_test),
+        validation_data=(X_test, y_test_l),
         epochs=0,
         batch_size=1024,
         callbacks=[early_stopping],
@@ -146,6 +155,7 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
+    pt.plot_predict_curve(y_test, y_pred)
 
     for i in range(15):
         alpha_1 = 0.0005 + 0.0001 * i
@@ -168,7 +178,7 @@ def main(time_delay=5):
         # print(f"The first 20 pred labels: {y_pred[:20]}")
         # print(f"The first 20 true labels: {y_test[:20]}")
 
-        test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+        test_score = eval.calculate_f_beta_multiclass(y_test_l, y_pred_custom)
         # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
         # test_pnl_average = eval.calculate_pnl_average(
         #    df_with_features_9, y_pred, time_delay
