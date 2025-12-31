@@ -97,7 +97,7 @@ class Predictor:
                     )
                 )
                 y = self.model.predict(X)
-                y = double_one_hot_to_label(y, threshold=0.45)
+                y = double_one_hot_to_label(y, threshold=0.55)
                 pred_labels.append(y[0])
 
             results.append(pred_labels)
