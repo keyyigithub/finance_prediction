@@ -87,20 +87,14 @@ class Predictor:
 
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
         results = []
-        for df in data:
-            X = self.preprocess(df)
-            pred_labels = []
-            for td in [40]:
-                self._load_weights(
-                    os.path.join(
-                        os.path.dirname(__file__), f"onehot_model_{td}.weights.h5"
-                    )
-                )
-                y = self.model.predict(X)
-                y = double_one_hot_to_label(y, threshold=0.55)
-                pred_labels.append(y[0])
-
-            results.append(pred_labels)
+        X = self.preprocess(data)
+        for td in [40]:
+            self._load_weights(
+                os.path.join(os.path.dirname(__file__), f"onehot_model_{td}.weights.h5")
+            )
+            y = self.model.predict(X)
+            y = double_one_hot_to_label(y, threshold=0.55)
+            results.append(y.tolist())
 
         return results
 
@@ -311,13 +305,18 @@ class Predictor:
 
         return df
 
-    def preprocess(self, df: pd.DataFrame):
-        df = self.create_all_features(df)
-        X = df[self.selected_features].values
-        X[:, 0:19] = self.balance_scaler.transform(X[:, 0:19])
-        X[:, 19:21] = self.volume_scaler.transform(X[:, 19:21])
-
-        X = X.reshape(1, X.shape[0], X.shape[1])
+    def preprocess(self, data: List[pd.DataFrame]):
+        X = None
+        for df in data:
+            df = self.create_all_features(df)
+            X_single = df[self.selected_features].to_numpy()
+            X_single[:, 0:19] = self.balance_scaler.transform(X_single[:, 0:19])
+            X_single[:, 19:21] = self.volume_scaler.transform(X_single[:, 19:21])
+            X_single = X_single.reshape(1, X_single.shape[0], X_single.shape[1])
+            if X is None:
+                X = X_single
+            else:
+                X = np.concatenate([X, X_single], axis=0)
         X = X[:, 20:, :]
         return X
 
@@ -326,7 +325,7 @@ def test():
     pred = Predictor()
     df = pd.read_csv("./merged_data/merged_0.csv")
     data = []
-    for i in range(10):
+    for i in range(100):
         data.append(df.iloc[i : 100 + i])
 
     result = pred.predict(data)
