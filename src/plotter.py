@@ -12,8 +12,8 @@ def plot_predict_curve(y_true, y_pred, label: str = "pnl"):
     plt.legend()
     plt.grid(True)
 
-    plt.savefig(f"predict_curve_of_{label}.pdf")
-    print(f"The figure saved to predict_curve_of_{label}.pdf")
+    plt.savefig(f"predict_curve_of_{label}.svg")
+    print(f"The figure saved to predict_curve_of_{label}.svg")
     plt.show()
 
 
