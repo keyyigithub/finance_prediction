@@ -1,4 +1,20 @@
+import plotter as pt
+import model as md
+import data_preprocess as dp
+import evaluation as eval
+import pandas as pd
+import numpy as np
+from tensorflow.keras.callbacks import EarlyStopping
 
+
+def print_memory_usage(label=""):
+    """Print current memory usage for monitoring"""
+    import psutil
+    import os
+
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    print(f"{label} - Memory usage: {mem_info.rss / 1024 / 1024:.2f} MB")
 
 
 def main(time_delay=5):
@@ -85,7 +101,7 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
-    # y_test_code = eval.label_to_double_one_hot(y_test)
+    y_test_code = eval.label_to_double_one_hot(y_test)
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
@@ -114,12 +130,7 @@ def main(time_delay=5):
         validation_data=(X_test, y_test_code),
         epochs=5,
         batch_size=1024,
-<<<<<<< HEAD
-        verbose=1,
-        # class_weight={0: 4, 1: 1, 2: 4},
-=======
         callback=[early_stopping],
->>>>>>> 835da83 (Early stopping)
     )
 
     # 预测示例
