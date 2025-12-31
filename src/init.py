@@ -139,7 +139,9 @@ def main(time_delay=5):
         print("-" * 50)
         thres = 0.001 + i / 5000
         print(f"Threshold = {thres}")
-        y_pred_l = eval.adaptive_decision_with_uncertainty(y_pred, base_threshold=thres)
+        y_pred_l, _, _ = eval.adaptive_decision_with_uncertainty(
+            y_pred, base_threshold=thres
+        )
         # print(y_pred_l.shape)
 
         test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
