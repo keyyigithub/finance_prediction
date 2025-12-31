@@ -90,7 +90,7 @@ class Predictor:
         for df in data:
             X = self.preprocess(df)
             pred_labels = []
-            for td in [5, 10, 20, 40, 60]:
+            for td in [40]:
                 self._load_weights(
                     os.path.join(
                         os.path.dirname(__file__), f"onehot_model_{td}.weights.h5"
@@ -98,7 +98,7 @@ class Predictor:
                 )
                 y = self.model.predict(X)
                 y = double_one_hot_to_label(y, threshold=0.45)
-                pred_labels.append(y)
+                pred_labels.append(y[0])
 
             results.append(pred_labels)
 
