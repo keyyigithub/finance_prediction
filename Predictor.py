@@ -98,7 +98,7 @@ class Predictor:
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
         results = []
         X = self.preprocess(data)
-        for td in [5, 10, 20, 40, 60]:
+        for td in [10]:
             self._load_weights(
                 os.path.join(
                     os.path.dirname(__file__), f"continue_model_{td}.weights.h5"

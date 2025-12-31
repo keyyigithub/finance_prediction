@@ -121,11 +121,11 @@ def build_continuous_model(input_shape):
 
     inputs = keras.Input(input_shape)
     x = build_base_model(input_shape)(inputs)
-    x = Dense(64, activation="tanh", kernel_regularizer=l2(0.01))(x)
+    x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
     x = Dropout(0.3)(x)
-    x = Dense(32, activation="tanh", kernel_regularizer=l2(0.01))(x)
+    x = Dense(32, activation="relu", kernel_regularizer=l2(0.01))(x)
     x = Dropout(0.3)(x)
-    outputs = Dense(1, activation="tanh")(x)
+    outputs = Dense(1, activation="linear")(x)
     model = keras.Model(inputs, outputs)
 
     optimizer = keras.optimizers.Adam(
