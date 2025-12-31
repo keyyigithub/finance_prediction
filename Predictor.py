@@ -1,9 +1,6 @@
-from json import load
 import os
 import joblib
 from typing import List
-from numpy.typing import NDArray
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     LSTM,
     Dense,
@@ -27,7 +24,7 @@ def log_transform(df: pd.DataFrame, features):
 
 
 def get_label(
-    y, X, time_delay, alpha1=0.0005, alpha2=0.001
+    y, time_delay, alpha1=0.0005, alpha2=0.001
 ):  # y可为y_test或y_pred，Day为一个数[5,10,20,40,60]
     # X = X_test[:, 99, 0]
     if time_delay in [5, 10]:
@@ -40,15 +37,11 @@ def get_label(
             f"不支持的时间步长N={time_delay}，支持的值为[5, 10, 20, 40, 60]"
         )
 
-    y = np.asarray(y)
-    X = np.asarray(X)
-
     # Squeeze to prevent broadcast error
     y = np.squeeze(y)
-    price_diff = y - X
 
     # 使用 np.select 进行高效的条件选择
-    conditions = [price_diff < -alpha, price_diff > alpha]
+    conditions = [y < -alpha, y > alpha]
     choices = [0, 2]
     labels = np.select(conditions, choices, default=1)
 
@@ -89,7 +82,7 @@ class Predictor:
         ]
 
         self.input_shape = (80, 25)
-        self.num_classes = 2
+        self.num_classes = 1
         self._build_model_architecture()
         self.balance_scaler = joblib.load(
             os.path.join(os.path.dirname(__file__), "balance.joblib")
@@ -105,15 +98,19 @@ class Predictor:
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
         results = []
         X = self.preprocess(data)
-        for td in [40]:
+        for td in [5, 10, 20, 40, 60]:
             self._load_weights(
-                os.path.join(os.path.dirname(__file__), f"onehot_model_{td}.weights.h5")
+                os.path.join(
+                    os.path.dirname(__file__), f"continue_model_{td}.weights.h5"
+                )
             )
             y = self.model.predict(X)
-            y = double_one_hot_to_label(y, threshold=0.55)
+            y = get_label(y, td, alpha1=0.0019 * 200, alpha2=0.0019 * 200)
             results.append(y.tolist())
 
-        return results
+        results = np.transpose(np.asarray(results))
+
+        return results.tolist()
 
     def _build_model_architecture(self):
         """构建模型架构（与训练时相同）"""
@@ -352,4 +349,4 @@ def test():
     pass
 
 
-# test()
+test()
