@@ -99,6 +99,10 @@ def main(time_delay=5):
     print("=" * 100)
     df_raw_9 = pd.read_csv("./merged_data/merged_9.csv")
     df_with_features_9 = dp.create_all_features(df_raw_9)
+    df_with_features_9[f"midprice_after_{time_delay}"] = df_with_features[
+        "n_midprice"
+    ].shift(-time_delay)
+
     df_with_features_9[f"return_after_{time_delay}"] = (
         df_with_features_9["n_midprice"].shift(-time_delay)
         - df_with_features_9["n_midprice"]
@@ -160,14 +164,15 @@ def main(time_delay=5):
     for i in range(15):
         alpha_1 = 0.0005 + 0.0001 * i
         alpha_2 = 0.001 + 0.0001 * i
-        y_pred_custom = eval.get_label(
+        y_pred_l = eval.get_label(
             y_pred,
             np.zeros(shape=(len(y_pred))),
             time_delay,
             alpha1=alpha_1 * 200,
             alpha2=alpha_2 * 200,
         )
-        y_pred_custom = np.asarray(y_pred_custom)
+        y_pred_l = np.asarray(y_pred_l)
+        pt.plot_predict_curve(y_test_l, y_pred_l, f"labels at {alpha_2}")
         # pt.plot_predict_curve(y_test, y_pred)
         # y_pred = np.argmax(y_pred, axis=1)
 
@@ -178,13 +183,13 @@ def main(time_delay=5):
         # print(f"The first 20 pred labels: {y_pred[:20]}")
         # print(f"The first 20 true labels: {y_test[:20]}")
 
-        test_score = eval.calculate_f_beta_multiclass(y_test_l, y_pred_custom)
+        test_score = eval.calculate_f_beta_multiclass(y_test_l, y_pred_l)
         # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
         # test_pnl_average = eval.calculate_pnl_average(
         #    df_with_features_9, y_pred, time_delay
         # )
         test_pnl_average_custom = eval.calculate_pnl_average(
-            df_with_features_9, y_pred_custom, time_delay
+            df_with_features_9, y_pred_l, time_delay
         )
         print(f"The f beta score on test(default): {test_score}")
         # print(f"The f beta score on test(custom): {test_score_custom}")
