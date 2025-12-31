@@ -269,6 +269,7 @@ def calculate_pnl_average(df: pd.DataFrame, pred_labels: NDArray, time_delay: in
     selected_returns = returns[(len(returns) - len(pred_labels)) :]
 
     acc_return = np.nansum(pred_labels * selected_returns)
+    print(f"The total pnl: {acc_return}")
     if sum(non_one_mask) > 0:
         average_return = acc_return / sum(non_one_mask)
     else:
