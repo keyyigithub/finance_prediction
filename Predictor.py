@@ -88,12 +88,12 @@ class Predictor:
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
         results = []
         X = self.preprocess(data)
-        for td in [5, 40]:
+        for td in [60]:
             self._load_weights(
                 os.path.join(os.path.dirname(__file__), f"onehot_model_{td}.weights.h5")
             )
             y = self.model.predict(X)
-            y = double_one_hot_to_label(y, threshold=0.55)
+            y = double_one_hot_to_label(y, threshold=0.6)
             results.append(y.tolist())
 
         results = np.transpose(np.asarray(results))
