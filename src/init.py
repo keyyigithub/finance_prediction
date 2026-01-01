@@ -135,7 +135,10 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
-    print(y_pred[:, :20])
+    print(y_pred[:, :10])
+    probs, uncertainty = eval.get_uncertainty(y_pred_alpha=y_pred)
+    print(f"Probs: {probs[:10]}")
+    print(f"uncertainty: {uncertainty[:10]}")
     # for i in range(10):
     #     print("-" * 50)
     #     thres = 0.3 + 0.04 * i

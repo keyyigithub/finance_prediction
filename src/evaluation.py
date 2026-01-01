@@ -219,7 +219,7 @@ def label_to_double_one_hot(labels: NDArray):
 
     # 定义编码映射
     encoding_map = np.array(
-        [[1.0, 0.0], [0.5, 0.5], [0.0, 1.0]],  # label 0  # label 1  # label 2
+        [[0.9, 0.1], [0.5, 0.5], [0.1, 0.9]],  # label 0  # label 1  # label 2
         dtype=np.float32,
     )
 
