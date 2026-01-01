@@ -74,7 +74,7 @@ def build_base_model(input_shape):
     x = LSTM(128, return_sequences=True)(x)
     x = Dropout(0.3)(x)
     short_cut = x
-    attention_output_1 = Attention(dropout=0.3)(x, x)
+    attention_output_1 = Attention(dropout=0.3)([x, x])
     x = LayerNormalization()(x + attention_output_1)
     # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=64)(x, x)
     # x = LayerNormalization()(x + attention_output_2)
