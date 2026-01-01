@@ -239,7 +239,7 @@ def get_uncertainty(y_pred_alpha):
     return probs, uncertainty
 
 
-def get_label_with_uncertainty(y_pred_alpha, threshold=1):
+def get_label_with_uncertainty(y_pred_alpha, threshold=1.0):
     _, uncertainty = get_uncertainty(y_pred_alpha)
     labels = np.select(y_pred_alpha[:, 0] > y_pred_alpha[:, 1], 0, default=2)
     uncredible_mask = uncertainty > threshold

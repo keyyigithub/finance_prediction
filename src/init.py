@@ -139,6 +139,16 @@ def main(time_delay=5):
     probs, uncertainty = eval.get_uncertainty(y_pred_alpha=y_pred)
     print(f"Probs: {probs[:10]}")
     print(f"uncertainty: {uncertainty[:10]}")
+    y_pred_l = eval.get_label_with_uncertainty(y_pred, 0.1)
+    test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
+    # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+    test_pnl_average = eval.calculate_pnl_average(
+        df_with_features_9, y_pred_l, time_delay
+    )
+    print(f"The f beta score on test(of Threshold {0.1}): {test_score}")
+    # print(f"The f beta score on test(custom): {test_score_custom}")
+    print(f"The pnl average on test(of Threshold {0.1}): {test_pnl_average}")
+
     # for i in range(10):
     #     print("-" * 50)
     #     thres = 0.3 + 0.04 * i
@@ -155,21 +165,6 @@ def main(time_delay=5):
     #     # print(f"The f beta score on test(custom): {test_score_custom}")
     #     print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
 
-    # y_train_pred = model.predict(X_train)
-    # pt.plot_predict_curve(y_train, y_trai n_pred)
-    # y_train_pred = np.argmax(y_train_pred, axis=1)
-    # X_train_original = price_scaler.inverse_transform(
-    #     X_train[:, 99, 0:3].reshape(-1, 3)
-    # )
-
-    # y_train_pred = eval.get_label(y_train_pred, X_train_original[:, 1], 5)
-    # y_train = eval.get_label(y_train, X_train_original[:, 1], 5)
-
-    # train_score = eval.calculate_f_beta_multiclass(y_train, y_train_pred)
-    # print(f"The f beta score on train: {train_score}")
-
-    # pt.draw_loss_curve(history)
-    # pt.draw_accuracy_curve(history)
     # 保存模型
     model.save_weights(f"onehot_model_{time_delay}.weights.h5")
     print(f"模型已保存为 'onehot_model_{time_delay}.weights.h5'")
