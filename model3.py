@@ -173,7 +173,7 @@ def main():
     # m.update_state(df["label_5"], y_pred)
     print("Calculating scores...")
     score = calculate_f_beta_multiclass(true_labels, pred_labels)
-    pnl_average = calculate_pnl_average(df_test, pred_labels, time_delay)
+    pnl_average = calculate_pnl_average(df_test, np.asarray(pred_labels), time_delay)
     print("Calculating scores...Done")
     print(f"The F-beta Score: {score}")
     print(f"The pnl average: {pnl_average}")
@@ -218,6 +218,8 @@ def calculate_f_beta_multiclass(true_labels, pred_labels, beta=0.5):
     else:
         recall = 0.0
 
+    print(f"Recall: {recall}")
+
     # 计算precision：预测标签不是1的样本中预测正确的比例
     pred_non_one_mask = pred_labels != 1
     if np.sum(pred_non_one_mask) > 0:
@@ -227,6 +229,7 @@ def calculate_f_beta_multiclass(true_labels, pred_labels, beta=0.5):
     else:
         precision = 0.0
 
+    print(f"Prediction: {precision}")
     # 计算F-beta分数
     if precision + recall == 0:
         f_beta = 0.0
