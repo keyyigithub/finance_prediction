@@ -8,7 +8,8 @@ from tensorflow.keras.layers import (
     LayerNormalization,
     Concatenate,
     MaxPooling1D,
-    MultiHeadAttention,
+    SpatialDropout1D,
+    Attention,
     Flatten,
     Bidirectional,
 )
@@ -39,12 +40,12 @@ def build_lstm_residual_block(input_shape, units=256):
 
     shortcut = inputs
 
-    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
-        inputs
-    )
-    x = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01)))(
-        inputs
-    )
+    x = Bidirectional(
+        LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01), dropout=0.3)
+    )(inputs)
+    x = Bidirectional(
+        LSTM(units, return_sequences=True, kernel_regularizer=l2(0.01), dropout=0.3)
+    )(inputs)
     shortcut_reshaped = Dense(units * 2)(shortcut)
     x = shortcut_reshaped + x
     outputs = Dropout(0.3)(x)
@@ -58,7 +59,7 @@ def build_base_model(input_shape):
     inputs = keras.Input(input_shape)
     x = build_conv_residual_block(input_shape)(inputs)
     x = LayerNormalization()(x)
-    x = Dropout(0.3)(x)
+    x = SpatialDropout1D(0.3)(x)
     x = MaxPooling1D(pool_size=3)(x)
     # x = build_conv_residual_block(input_shape)(inputs)
     # x = LayerNormalization()(x)
@@ -73,13 +74,15 @@ def build_base_model(input_shape):
     x = LSTM(128, return_sequences=True)(x)
     x = Dropout(0.3)(x)
     short_cut = x
-    attention_output_1 = MultiHeadAttention(num_heads=8, key_dim=64)(x, x)
+    attention_output_1 = Attention(dropout=0.3)(x, x)
     x = LayerNormalization()(x + attention_output_1)
     # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=64)(x, x)
     # x = LayerNormalization()(x + attention_output_2)
 
     x = Dense(128, activation="relu", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
     x = Dense(64, activation="relu", kernel_regularizer=l2(0.01))(x)
+    x = Dropout(0.3)(x)
     short_cut = Dense(64)(short_cut)
     x = short_cut + x
     x = Dropout(0.3)(x)
