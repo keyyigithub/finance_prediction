@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Conv1D
-
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import Accuracy
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
@@ -92,21 +92,21 @@ def main():
 
     # 加载数据
     df = load_data(file_path)
-    print(f"数据形状: {df.shape}")
-    print(f"列名: {df.columns.tolist()}")
-    print(df.head())
-
-    # Visualize the data
-    # Plot the closing price over time
-    plt.figure(figsize=(14, 7))
-    plt.plot(df["n_midprice"], label="Midprice")
-    plt.title("Midprice Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Price")
-    plt.legend()
-    plt.grid(True)
-
-    plt.show()
+    # print(f"数据形状: {df.shape}")
+    # print(f"列名: {df.columns.tolist()}")
+    # print(df.head())
+    #
+    # # Visualize the data
+    # # Plot the closing price over time
+    # plt.figure(figsize=(14, 7))
+    # plt.plot(df["n_midprice"], label="Midprice")
+    # plt.title("Midprice Over Time")
+    # plt.xlabel("Date")
+    # plt.ylabel("Price")
+    # plt.legend()
+    # plt.grid(True)
+    #
+    # plt.show()
 
     # 预处理数据
     sequence_length = 100  # 使用过去30个tick的数据
@@ -114,30 +114,37 @@ def main():
     print("Preprocessing Data...")
     X, y = preprocess_data(df, sequence_length, time_delay)
     print("Preprocessing Data...Done")
+    df_test = load_data("./merged_data/merged_1.csv")
+    df_test[f"return_after_{time_delay}"] = (
+        df_test["n_midprice"].shift(-time_delay) - df_test["n_midprice"]
+    ) / df_test["n_midprice"]
+    X_test, y_test = preprocess_data(df_test, sequence_length, time_delay)
 
-    # 划分训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, shuffle=False  # 时间序列不随机打乱
-    )
-
-    print(f"训练集形状: {X_train.shape}, {y_train.shape}")
-    print(f"测试集形状: {X_test.shape}, {y_test.shape}")
+    # print(f"训练集形状: {X_train.shape}, {y_train.shape}")
+    # print(f"测试集形状: {X_test.shape}, {y_test.shape}")
 
     # 构建模型
     print("Building model...")
-    input_shape = (X_train.shape[1], X_train.shape[2])
+    input_shape = (X.shape[1], X.shape[2])
     model = build_lstm_model(input_shape)
     print("Building model...Done")
     model.summary()
-
+    early_stopping = EarlyStopping(
+        monitor="val_loss",  # 监控验证集损失
+        patience=2,  # 容忍多少个epoch没有改善
+        restore_best_weights=True,  # 恢复最佳权重
+        mode="min",  # 最小化指标
+        verbose=1,
+    )
     # 训练模型
     history = model.fit(
-        X_train,
-        y_train,
-        # validation_data=(X_test, y_test),
+        X,
+        y,
+        validation_data=(X_test, y_test),
         epochs=10,
         batch_size=128,
         verbose=1,
+        callbacks=[early_stopping],
     )
 
     # 预测示例
@@ -166,8 +173,10 @@ def main():
     # m.update_state(df["label_5"], y_pred)
     print("Calculating scores...")
     score = calculate_f_beta_multiclass(true_labels, pred_labels)
+    pnl_average = calculate_pnl_average(df_test, pred_labels, time_delay)
     print("Calculating scores...Done")
     print(f"The F-beta Score: {score}")
+    print(f"The pnl average: {pnl_average}")
 
 
 def change_label(y, X, time_delay):  # y可为y_test或y_pred，Day为一个数[5,10,20,40,60]
@@ -257,6 +266,24 @@ def draw_loss_curve(history):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
+def calculate_pnl_average(df: pd.DataFrame, pred_labels, time_delay: int):
+    returns = df[f"return_after_{time_delay}"].values
+    non_one_mask = pred_labels != 1
+    pred_labels = pred_labels - 1
+    # 方法1：使用 np.nansum 忽略 NaN（推荐）
+    selected_returns = returns[(len(returns) - len(pred_labels)) :]
+
+    acc_return = np.nansum(pred_labels * selected_returns)
+    print(f"The total pnl: {acc_return}")
+    if sum(non_one_mask) > 0:
+        average_return = acc_return / sum(non_one_mask)
+    else:
+        print("Why no 0 or 2? Fuck you sonuvbitch!")
+        average_return = 114514
+
+    return average_return
 
 
 # 5. 批量处理多个文件
