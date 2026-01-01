@@ -111,11 +111,11 @@ def main(time_delay=5):
 
     print("=" * 100)
     print("Data Preprocessing ... Done.")
-
+    
     # 构建模型
-    input_shape = (X_train.shape[1], X_train.shape[2])
-    model = md.build_evidential_model(input_shape, 2)
-    model.summary()
+    input_shape = (X_train.shape[   0], X_train.shape[2])
+    model = md.build_classification_model(input_shape, 2)
+        model.summary()
     early_stopping = EarlyStopping(
         monitor="val_loss",  # 监控验证集损失
         patience=1,  # 容忍多少个epoch没有改善
@@ -137,10 +137,10 @@ def main(time_delay=5):
     y_pred = model.predict(X_test)
     for i in range(10):
         print("-" * 50)
-        thres = 0.001 + i / 5000
+        thres = 0.3 + 0.04 * i
         print(f"Threshold = {thres}")
-        y_pred_l, _, _ = eval.adaptive_decision_with_uncertainty(
-            y_pred, base_threshold=thres
+        y_pred_l, _, _ = eval.double_one_hot_to_label(
+            y_pred, threshold=thres
         )
         # print(y_pred_l.shape)
 
