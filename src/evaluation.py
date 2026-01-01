@@ -234,7 +234,7 @@ def label_to_double_one_hot(labels: NDArray):
 
 def get_uncertainty(y_pred_alpha):
     S = np.sum(y_pred_alpha, axis=1, keepdims=True)
-    probs = alpha / S
+    probs = y_pred_alpha / S
     uncertainty = 2 / S
     return probs, uncertainty
 
