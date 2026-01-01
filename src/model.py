@@ -168,7 +168,7 @@ def build_evidential_model(input_shape, num_classes=3):
     # 编译使用Dirichlet损失
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-        loss=get_soft_loss(num_classes=num_classes),
+        loss=get_soft_loss(lamb=0.001, num_classes=num_classes),
     )
     return model
 
