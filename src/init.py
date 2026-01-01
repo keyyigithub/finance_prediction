@@ -128,7 +128,7 @@ def main(time_delay=5):
         X_train,
         y_train,
         validation_data=(X_test, y_test_code),
-        epochs=5,
+        epochs=10,
         batch_size=1024,
         callbacks=[early_stopping],
     )
