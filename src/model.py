@@ -1,8 +1,6 @@
-import evaluation as eval
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     LSTM,
     Dense,
@@ -170,9 +168,44 @@ def build_evidential_model(input_shape, num_classes=3):
     # 编译使用Dirichlet损失
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-        loss=dirichlet_loss,
+        loss=get_soft_loss(num_classes=num_classes),
     )
     return model
+
+
+def get_soft_loss(lamb=0.1, num_classes=3):
+    def soft_loss(y_true, y_pred_alpha):
+        S = tf.reduce_sum(y_pred_alpha, axis=1, keepdims=True)
+        y_true = tf.cast(y_true, tf.float32)
+        risk_per_class = y_true * (tf.math.digamma(S) - tf.math.digamma(y_pred_alpha))
+        tot_risk = tf.reduce_sum(risk_per_class, axis=1)
+        kl_alpha = y_pred_alpha
+        kl_one = tf.ones_like(kl_alpha)
+        term1 = tf.math.lgamma(S) - tf.reduce_sum(
+            tf.math.lgamma(kl_alpha), axis=1, keepdims=True
+        )
+        term2 = tf.reduce_sum(
+            (kl_alpha - 1.0) * (tf.math.digamma(kl_alpha) - tf.math.digamma(S)),
+            axis=1,
+            keepdims=True,
+        )
+        # E. 计算 KL 散度正则项
+        # KL(Dir(alpha) || Dir(1))
+        # 公式推导:
+        # ln(Gamma(S)) - sum(ln(Gamma(alpha_i)))
+        # - sum((alpha_i - 1) * (psi(alpha_i) - psi(S)))
+        # - ln(Gamma(K))
+        # 这里的 num_classes 需要转成 tensor 常量
+
+        k_tensor = tf.cast(num_classes, dtype=tf.float32)
+        term3 = tf.math.lgamma(
+            k_tensor
+        )  # 因为 Gamma(1)=1, ln(Gamma(1))=0，这里其实是 ln(Gamma(K)) - K*ln(Gamma(1))
+
+        kl_divergence = term1 - term2 - term3
+        return tf.reduce_mean(tot_risk + lamb * kl_divergence)
+
+    return soft_loss
 
 
 # 在损失函数中体现

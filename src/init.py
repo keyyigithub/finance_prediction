@@ -33,7 +33,7 @@ def main(time_delay=5):
     y_train = None
     y_test = None
 
-    for i in range(9):
+    for i in range(1, 2):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
@@ -111,14 +111,14 @@ def main(time_delay=5):
 
     print("=" * 100)
     print("Data Preprocessing ... Done.")
-    
+
     # 构建模型
-    input_shape = (X_train.shape[   0], X_train.shape[2])
-    model = md.build_classification_model(input_shape, 2)
-        model.summary()
+    input_shape = (X_train.shape[1], X_train.shape[2])
+    model = md.build_evidential_model(input_shape, 2)
+    model.summary()
     early_stopping = EarlyStopping(
         monitor="val_loss",  # 监控验证集损失
-        patience=1,  # 容忍多少个epoch没有改善
+        patience=2,  # 容忍多少个epoch没有改善
         restore_best_weights=True,  # 恢复最佳权重
         mode="min",  # 最小化指标
         verbose=1,
@@ -135,23 +135,22 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
-    for i in range(10):
-        print("-" * 50)
-        thres = 0.3 + 0.04 * i
-        print(f"Threshold = {thres}")
-        y_pred_l, _, _ = eval.double_one_hot_to_label(
-            y_pred, threshold=thres
-        )
-        # print(y_pred_l.shape)
-
-        test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
-        # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
-        test_pnl_average = eval.calculate_pnl_average(
-            df_with_features_9, y_pred_l, time_delay
-        )
-        print(f"The f beta score on test(of Threshold {thres}): {test_score}")
-        # print(f"The f beta score on test(custom): {test_score_custom}")
-        print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
+    print(y_pred[:, :20])
+    # for i in range(10):
+    #     print("-" * 50)
+    #     thres = 0.3 + 0.04 * i
+    #     print(f"Threshold = {thres}")
+    #     y_pred_l, _, _ = eval.double_one_hot_to_label(y_pred, threshold=thres)
+    #     # print(y_pred_l.shape)
+    #
+    #     test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
+    #     # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+    #     test_pnl_average = eval.calculate_pnl_average(
+    #         df_with_features_9, y_pred_l, time_delay
+    #     )
+    #     print(f"The f beta score on test(of Threshold {thres}): {test_score}")
+    #     # print(f"The f beta score on test(custom): {test_score_custom}")
+    #     print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
 
     # y_train_pred = model.predict(X_train)
     # pt.plot_predict_curve(y_train, y_trai n_pred)
@@ -174,5 +173,5 @@ def main(time_delay=5):
 
 
 if __name__ == "__main__":
-    for td in [5, 10, 20, 40, 60]:
+    for td in [20]:
         main(td)
