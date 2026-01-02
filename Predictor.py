@@ -116,7 +116,10 @@ class Predictor:
             feat_3 = Conv1D(
                 filters=32, kernel_size=7, padding="same", activation="tanh"
             )(inputs)
-            outputs = Concatenate(axis=2)([feat_1, feat_2, feat_3, shortcut])
+            feat_4 = Conv1D(
+                filters=32, kernel_size=11, padding="same", activation="relu"
+            )(inputs)
+            outputs = Concatenate(axis=2)([feat_1, feat_2, feat_3, feat_4, shortcut])
             return keras.Model(inputs, outputs)
 
         def build_lstm_residual_block(input_shape, units=256):
