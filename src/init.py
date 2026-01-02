@@ -114,7 +114,7 @@ def main(time_delay=5):
 
     # 构建模型
     input_shape = (X_train.shape[1], X_train.shape[2])
-    model = md.build_evidential_model(input_shape, 2)
+    model = md.build_classification_model(input_shape, 2)
     model.summary()
     early_stopping = EarlyStopping(
         monitor="val_loss",  # 监控验证集损失
@@ -135,39 +135,41 @@ def main(time_delay=5):
 
     # 预测示例
     y_pred = model.predict(X_test)
+    # test_evidiential_model(y_test, y_pred, df_with_features_9, time_delay)
+    test_classification_model(y_test, y_pred, df_with_features_9, time_delay)
+    # 保存模型
+    model.save_weights(f"onehot_model_{time_delay}.weights.h5")
+    print(f"模型已保存为 'onehot_model_{time_delay}.weights.h5'")
+
+
+def test_evidiential_model(y_true, y_pred, df, time_delay):
     print(y_pred[:, :10])
     probs, uncertainty = eval.get_uncertainty(y_pred_alpha=y_pred)
     print(f"Probs: {probs[:10]}")
     print(f"uncertainty: {uncertainty[:10]}")
     y_pred_l = eval.get_label_with_uncertainty(y_pred, 0.1)
-    test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
+    test_score = eval.calculate_f_beta_multiclass(y_true, y_pred_l)
     # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
-    test_pnl_average = eval.calculate_pnl_average(
-        df_with_features_9, y_pred_l, time_delay
-    )
+    test_pnl_average = eval.calculate_pnl_average(df, y_pred_l, time_delay)
     print(f"The f beta score on test(of Threshold {0.1}): {test_score}")
     # print(f"The f beta score on test(custom): {test_score_custom}")
     print(f"The pnl average on test(of Threshold {0.1}): {test_pnl_average}")
 
-    # for i in range(10):
-    #     print("-" * 50)
-    #     thres = 0.3 + 0.04 * i
-    #     print(f"Threshold = {thres}")
-    #     y_pred_l, _, _ = eval.double_one_hot_to_label(y_pred, threshold=thres)
-    #     # print(y_pred_l.shape)
-    #
-    #     test_score = eval.calculate_f_beta_multiclass(y_test, y_pred_l)
-    #     # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
-    #     test_pnl_average = eval.calculate_pnl_average(
-    #         df_with_features_9, y_pred_l, time_delay
-    #     )
-    #     print(f"The f beta score on test(of Threshold {thres}): {test_score}")
-    #     # print(f"The f beta score on test(custom): {test_score_custom}")
-    #     print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
 
-    # 保存模型
-    model.save_weights(f"onehot_model_{time_delay}.weights.h5")
-    print(f"模型已保存为 'onehot_model_{time_delay}.weights.h5'")
+def test_classification_model(y_true, y_pred, df, time_delay):
+    for i in range(10):
+        print("-" * 50)
+        thres = 0.3 + 0.04 * i
+        print(f"Threshold = {thres}")
+        y_pred_l = eval.double_one_hot_to_label(y_pred, threshold=thres)
+        # print(y_pred_l.shape)
+
+        test_score = eval.calculate_f_beta_multiclass(y_true, y_pred_l)
+        # test_score_custom = eval.calculate_f_beta_multiclass(y_test, y_pred_custom)
+        test_pnl_average = eval.calculate_pnl_average(df, y_pred_l, time_delay)
+        print(f"The f beta score on test(of Threshold {thres}): {test_score}")
+        # print(f"The f beta score on test(custom): {test_score_custom}")
+        print(f"The pnl average on test(of Threshold {thres}): {test_pnl_average}")
 
 
 if __name__ == "__main__":
