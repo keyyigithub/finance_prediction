@@ -9,9 +9,10 @@ from tensorflow.keras.layers import (
     Dense,
     Dropout,
     Conv1D,
+    MaxPooling1D,
     LayerNormalization,
     Concatenate,
-    MultiHeadAttention,
+    Attention,
     Flatten,
     Bidirectional,
 )
@@ -88,12 +89,19 @@ class Predictor:
     def predict(self, data: List[pd.DataFrame]) -> List[List[int]]:
         results = []
         X = self.preprocess(data)
-        for td in [60]:
+        thresholds = {
+            5: 0.28,
+            10: 0.45,
+            20: 0.38,
+            40: 0.56,
+            60: 0.56,
+        }
+        for td in [5, 10, 20, 40, 60]:
             self._load_weights(
                 os.path.join(os.path.dirname(__file__), f"onehot_model_{td}.weights.h5")
             )
             y = self.model.predict(X)
-            y = double_one_hot_to_label(y, threshold=0.6)
+            y = double_one_hot_to_label(y, threshold=thresholds[td])
             results.append(y.tolist())
 
         results = np.transpose(np.asarray(results))
@@ -133,13 +141,15 @@ class Predictor:
             )(inputs)
             shortcut_reshaped = Dense(units * 2)(shortcut)
             x = shortcut_reshaped + x
-            outputs = Dropout(0.3)(x)
+            outputs = x
+            # outputs = Dropout(0.3)(x)
             return keras.Model(inputs, outputs)
 
         def build_base_model(input_shape):
             inputs = keras.Input(input_shape)
             x = build_conv_residual_block(input_shape)(inputs)
             x = LayerNormalization()(x)
+            x = MaxPooling1D(pool_size=3)(x)
             # x = Dropout(0.3)(x)
             # x = build_conv_residual_block(input_shape)(inputs)
             # x = LayerNormalization()(x)
@@ -152,7 +162,7 @@ class Predictor:
 
             x = LSTM(128, return_sequences=True)(x)
             short_cut = x
-            attention_output_1 = MultiHeadAttention(num_heads=4, key_dim=128)(x, x)
+            attention_output_1 = Attention()([x, x])
             x = LayerNormalization()(x + attention_output_1)
             # attention_output_2 = MultiHeadAttention(num_heads=4, key_dim=256)(x, x)
             # x = LayerNormalization()(x + attention_output_2)
