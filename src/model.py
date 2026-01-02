@@ -112,7 +112,7 @@ def build_classification_model(input_shape, num_classes=3):
     )
     model.compile(
         optimizer=optimizer,
-        loss="categorical_crossentropy",
+        loss=keras.losses.KLDivergence(),
         # metrics=[eval.FBetaScore()],
     )
 

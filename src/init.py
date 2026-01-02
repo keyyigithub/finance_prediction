@@ -173,5 +173,5 @@ def test_classification_model(y_true, y_pred, df, time_delay):
 
 
 if __name__ == "__main__":
-    for td in [20]:
+    for td in [5, 10, 20, 40, 60]:
         main(td)
