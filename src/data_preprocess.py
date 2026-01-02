@@ -9,14 +9,6 @@ selected_features = [
     # features already balanced, using MinMaxScaler:
     "n_close",  # 标准化后的收盘价
     "n_midprice",  # 标准化后的中间价
-    "n_bid1",
-    "n_ask1",
-    "n_bid2",
-    "n_ask2",
-    "n_bid3",
-    "n_ask3",
-    "n_bid4",
-    "n_ask4",
     "n_bid5",
     "n_ask5",
     "bid_ask_spread",  # 买卖价差
@@ -37,15 +29,7 @@ selected_features = [
     # features need to transform using log1p
     "amount_delta",  # 成交额变化
     "volume_momentum",  # 成交量动量
-    "n_asize1",
-    "n_asize2",
-    "n_asize3",
-    "n_asize4",
     "n_asize5",
-    "n_bsize1",
-    "n_bsize2",
-    "n_bsize3",
-    "n_bsize4",
     "n_bsize5",
     # features that don't need a scaler
     "time_sin",  # 时间正弦编码
@@ -165,7 +149,7 @@ def create_all_features(df: pd.DataFrame):
     df["parkinson_vol_20"] = np.sqrt(
         (1 / (4 * 20 * np.log(2))) * high_low_ratio.rolling(window=20).sum()
     )
-    df = log_transform(df, selected_features[27:39])
+    df = log_transform(df, selected_features[19:21])
 
     print(f"特征工程完成")
 
@@ -253,9 +237,9 @@ def scale(X_train: NDArray, X_test: NDArray):
     volume_scaler = RobustScaler()
     X_train_scaled = np.concatenate(
         [
-            scale_train(balance_scaler, X_train[:, :, 0:27]),
-            scale_train(volume_scaler, X_train[:, :, 27:39]),
-            X_train[:, :, 39:],
+            scale_train(balance_scaler, X_train[:, :, 0:19]),
+            scale_train(volume_scaler, X_train[:, :, 19:21]),
+            X_train[:, :, 21:],
         ],
         axis=2,
     )
