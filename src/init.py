@@ -33,7 +33,7 @@ def main(time_delay=5):
     y_train = None
     y_test = None
 
-    for i in range(9):
+    for i in range(10):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
