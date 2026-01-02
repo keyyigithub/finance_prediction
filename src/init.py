@@ -157,9 +157,9 @@ def test_evidiential_model(y_true, y_pred, df, time_delay):
 
 
 def test_classification_model(y_true, y_pred, df, time_delay):
-    for i in range(10):
+    for i in range(20):
         print("-" * 50)
-        thres = 0.3 + 0.04 * i
+        thres = 0.2 + 0.02 * i
         print(f"Threshold = {thres}")
         y_pred_l = eval.double_one_hot_to_label(y_pred, threshold=thres)
         # print(y_pred_l.shape)
