@@ -1,4 +1,4 @@
-from json import load
+import time
 import os
 import joblib
 from typing import List
@@ -337,16 +337,17 @@ class Predictor:
 
 
 def test():
+    start = time.perf_counter()
     pred = Predictor()
     df = pd.read_csv("./merged_data/merged_0.csv")
     data = []
-    for i in range(100):
+    for i in range(4800):
         data.append(df.iloc[i : 100 + i])
 
     result = pred.predict(data)
-    print(df.iloc[99:109]["label_5"])
     print(result)
-
+    end = time.perf_counter()
+    print(f"耗时: {end - start:.6f} 秒")
     pass
 
 
