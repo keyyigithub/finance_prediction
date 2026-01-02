@@ -246,9 +246,9 @@ def scale(X_train: NDArray, X_test: NDArray):
     # print(f"After Train Scaling: {price_scaler.center_,price_scaler.scale_}")
     X_test_scaled = np.concatenate(
         [
-            scale_test(balance_scaler, X_test[:, :, 0:27]),
-            scale_test(volume_scaler, X_test[:, :, 27:39]),
-            X_test[:, :, 39:],
+            scale_test(balance_scaler, X_test[:, :, 0:19]),
+            scale_test(volume_scaler, X_test[:, :, 19:21]),
+            X_test[:, :, 21:],
         ],
         axis=2,
     )
