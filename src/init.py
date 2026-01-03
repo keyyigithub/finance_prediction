@@ -33,7 +33,7 @@ def main(time_delay=5):
     y_train = None
     y_test = None
 
-    for i in range(10):
+    for i in range(9):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
@@ -129,6 +129,7 @@ def main(time_delay=5):
         y_train,
         validation_data=(X_test, y_test_code),
         epochs=10,
+        shuffle=False,
         batch_size=1024,
         callbacks=[early_stopping],
     )
