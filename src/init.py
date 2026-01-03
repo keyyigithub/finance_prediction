@@ -108,7 +108,6 @@ def main(time_delay=5):
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
-    print_memory_usage("Final")
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
     print(f"测试集形状: {X_test.shape}, {y_test.shape}")
 
@@ -135,7 +134,7 @@ def main(time_delay=5):
         batch_size=1024,
         verbose=1,
         # class_weight={0: 4, 1: 1, 2: 4},
-        callback=[early_stopping],
+        callbacks=[early_stopping],
     )
 
     # 预测示例
