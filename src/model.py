@@ -114,7 +114,7 @@ def build_classification_model(input_shape, num_classes=3):
     model.compile(
         optimizer=optimizer,
         loss="categorical_focal_crossentropy",
-        metrics=[eval.FBetaScore()],
+        # metrics=[eval.FBetaScore()],
     )
 
     return model
