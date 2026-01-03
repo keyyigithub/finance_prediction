@@ -1,4 +1,10 @@
-
+import data_preprocess as dp
+import evaluation as eval
+import model as md
+import plotter as pt
+import pandas as pd
+import numpy as np
+from tensorflow.keras.callbacks import EarlyStopping
 
 
 # ----------
@@ -16,8 +22,6 @@ def main(time_delay=5):
     print("Data Preprocessing ...")
     sequence_length = 80
 
-    print_memory_usage("Initial")
-
     # Initialize empty arrays for incremental concatenation
     X_train = None
     X_test = None
@@ -28,7 +32,6 @@ def main(time_delay=5):
 
         print("-" * 50)
         print(f"Stock Index: {i}")
-        print_memory_usage(f"Before processing stock {i}")
 
         # Process one stock at a time to reduce memory footprint
         df_raw = pd.read_csv(f"./merged_data/merged_{i}.csv")
