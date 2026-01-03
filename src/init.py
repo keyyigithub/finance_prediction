@@ -105,6 +105,7 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
+    y_test = eval.label_to_one_hot(y_test.astype(int))
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
