@@ -120,10 +120,10 @@ def main(time_delay=5):
     model = md.build_classification_model(input_shape)
     model.summary()
     early_stopping = EarlyStopping(
-        monitor="val_loss",  # 监控验证集损失
-        patience=1,  # 容忍多少个epoch没有改善
+        monitor="val_f_beta_score",  # 监控验证集损失
+        mode="max",
+        patience=2,  # 容忍多少个epoch没有改善
         restore_best_weights=True,  # 恢复最佳权重
-        mode="min",  # 最小化指标
         verbose=1,
     )
     # 训练模型
