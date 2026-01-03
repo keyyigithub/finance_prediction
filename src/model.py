@@ -21,13 +21,13 @@ from tensorflow.keras import backend as K
 def build_conv_residual_block(input_shape):
     inputs = keras.Input(input_shape)
     shortcut = inputs
-    feat_1 = Conv1D(filters=32, kernel_size=3, padding="same", activation="tanh")(
+    feat_1 = Conv1D(filters=32, kernel_size=3, padding="same", activation="relu")(
         inputs
     )
-    feat_2 = Conv1D(filters=32, kernel_size=5, padding="same", activation="tanh")(
+    feat_2 = Conv1D(filters=32, kernel_size=5, padding="same", activation="relu")(
         inputs
     )
-    feat_3 = Conv1D(filters=32, kernel_size=7, padding="same", activation="tanh")(
+    feat_3 = Conv1D(filters=32, kernel_size=7, padding="same", activation="relu")(
         inputs
     )
     feat_4 = Conv1D(filters=32, kernel_size=11, padding="same", activation="relu")(
