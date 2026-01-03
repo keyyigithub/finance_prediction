@@ -25,7 +25,7 @@ def print_memory_usage(label=""):
 
 def main(time_delay=5):
     print("=" * 100)
-    print("~" * 100)
+    print("~" * 40 + f" Time delay = {time_delay} " + "~" * 40)
     print("=" * 100)
     print("Data Preprocessing ...")
     sequence_length = 80
@@ -60,13 +60,13 @@ def main(time_delay=5):
             "n_midprice"
         ].shift(-time_delay)
 
-        df_with_features[f"relabel_{time_delay}"] = eval.get_label(
-            df_with_features[f"midprice_after_{time_delay}"],
-            df_with_features["n_midprice"],
-            time_delay,
-            alpha1=0.0015,
-            alpha2=0.002,
-        )
+        # df_with_features[f"relabel_{time_delay}"] = eval.get_label(
+        #     df_with_features[f"midprice_after_{time_delay}"],
+        #     df_with_features["n_midprice"],
+        #     time_delay,
+        #     alpha1=0.0015,
+        #     alpha2=0.002,
+        # )
         df_with_features = df_with_features.tail(len(df_with_features) - 20)
         df_with_features = df_with_features.head(len(df_with_features) - time_delay)
 
@@ -75,7 +75,7 @@ def main(time_delay=5):
         X_single, y_single = dp.sequentialize_certain_features(
             df_with_features,
             dp.selected_features,
-            f"relabel_{time_delay}",
+            f"label_{time_delay}",
             sequence_length,
         )
         # print_memory_usage(f"After sequentializing stock {i}")
@@ -139,7 +139,7 @@ def main(time_delay=5):
         epochs=5,
         batch_size=1024,
         verbose=1,
-        class_weight={0: 4, 1: 1, 2: 4},
+        # class_weight={0: 4, 1: 1, 2: 4},
     )
 
     # 预测示例
