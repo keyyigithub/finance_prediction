@@ -129,7 +129,7 @@ def main(time_delay=5):
         y_train,
         validation_data=(X_test, y_test_code),
         epochs=4,
-        shuffle=False,
+        # shuffle=False,
         batch_size=1024,
         callbacks=[early_stopping],
     )
