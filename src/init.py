@@ -105,12 +105,12 @@ def main(time_delay=5):
         f"label_{time_delay}",
         sequence_length,
     )
-    y_test = eval.label_to_one_hot(y_test.astype(int))
+    y_test_code = eval.label_to_one_hot(y_test.astype(int))
     print("-" * 50)
 
     X_train, X_test = dp.scale(X_train, X_test)
     print(f"训练集形状: {X_train.shape}, {y_train.shape}")
-    print(f"测试集形状: {X_test.shape}, {y_test.shape}")
+    print(f"测试集形状: {X_test.shape}, {y_test_code.shape}")
 
     print("=" * 100)
     print("Data Preprocessing ... Done.")
@@ -130,7 +130,7 @@ def main(time_delay=5):
     history = model.fit(
         X_train,
         y_train,
-        validation_data=(X_test, y_test),
+        validation_data=(X_test, y_test_code),
         epochs=5,
         batch_size=1024,
         verbose=1,
