@@ -182,6 +182,13 @@ def one_hot_to_label(y: NDArray, threshold: float):
     return result
 
 
+def label_to_one_hot(labels, num_classes=3):
+    one_hot = np.zeros((len(labels), num_classes))
+    one_hot[np.arange(len(labels)), labels] = 1
+
+    return one_hot
+
+
 def calculate_pnl_average(df: pd.DataFrame, pred_labels: NDArray, time_delay: int):
     returns = df[f"return_after_{time_delay}"].values
     non_one_mask = pred_labels != 1
