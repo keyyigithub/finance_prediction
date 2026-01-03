@@ -9,6 +9,7 @@ selected_features = [
     # features already balanced, using MinMaxScaler:
     "n_close",  # 标准化后的收盘价
     "n_midprice",  # 标准化后的中间价
+    "sym",
     "n_bid5",
     "n_ask5",
     "bid_ask_spread",  # 买卖价差
@@ -149,7 +150,7 @@ def create_all_features(df: pd.DataFrame):
     df["parkinson_vol_20"] = np.sqrt(
         (1 / (4 * 20 * np.log(2))) * high_low_ratio.rolling(window=20).sum()
     )
-    df = log_transform(df, selected_features[19:21])
+    df = log_transform(df, selected_features[20:22])
 
     print(f"特征工程完成")
 
@@ -237,18 +238,18 @@ def scale(X_train: NDArray, X_test: NDArray):
     volume_scaler = RobustScaler()
     X_train_scaled = np.concatenate(
         [
-            scale_train(balance_scaler, X_train[:, :, 0:19]),
-            scale_train(volume_scaler, X_train[:, :, 19:21]),
-            X_train[:, :, 21:],
+            scale_train(balance_scaler, X_train[:, :, 0:20]),
+            scale_train(volume_scaler, X_train[:, :, 20:22]),
+            X_train[:, :, 22:],
         ],
         axis=2,
     )
     # print(f"After Train Scaling: {price_scaler.center_,price_scaler.scale_}")
     X_test_scaled = np.concatenate(
         [
-            scale_test(balance_scaler, X_test[:, :, 0:19]),
-            scale_test(volume_scaler, X_test[:, :, 19:21]),
-            X_test[:, :, 21:],
+            scale_test(balance_scaler, X_test[:, :, 0:20]),
+            scale_test(volume_scaler, X_test[:, :, 20:22]),
+            X_test[:, :, 22:],
         ],
         axis=2,
     )
