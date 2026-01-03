@@ -108,13 +108,11 @@ def build_classification_model(input_shape, num_classes=3):
 
     optimizer = keras.optimizers.Adam(
         learning_rate=0.0001,
-        beta_1=0.9,
-        beta_2=0.999,
         clipnorm=1.0,  # 梯度裁剪，防止梯度爆炸
     )
     model.compile(
         optimizer=optimizer,
-        loss=keras.losses.KLDivergence(),
+        loss="binary_crossentropy",
         # metrics=[eval.FBetaScore()],
     )
 
