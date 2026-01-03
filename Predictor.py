@@ -45,6 +45,7 @@ class Predictor:
             # features already balanced, using MinMaxScaler:
             "n_close",  # 标准化后的收盘价
             "n_midprice",  # 标准化后的中间价
+            "sym",
             "n_bid5",
             "n_ask5",
             "bid_ask_spread",  # 买卖价差
@@ -315,7 +316,7 @@ class Predictor:
             (1 / (4 * 20 * np.log(2))) * high_low_ratio.rolling(window=20).sum()
         )
 
-        df = log_transform(df, self.selected_features[19:21])
+        df = log_transform(df, self.selected_features[20:22])
         print(f"特征工程完成")
 
         return df
@@ -325,8 +326,8 @@ class Predictor:
         for df in data:
             df = self.create_all_features(df)
             X_single = df[self.selected_features].to_numpy()
-            X_single[:, 0:19] = self.balance_scaler.transform(X_single[:, 0:19])
-            X_single[:, 19:21] = self.volume_scaler.transform(X_single[:, 19:21])
+            X_single[:, 0:20] = self.balance_scaler.transform(X_single[:, 0:20])
+            X_single[:, 20:22] = self.volume_scaler.transform(X_single[:, 20:22])
             X_single = X_single.reshape(1, X_single.shape[0], X_single.shape[1])
             if X is None:
                 X = X_single
