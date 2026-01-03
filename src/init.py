@@ -118,7 +118,7 @@ def main(time_delay=5):
     model.summary()
     early_stopping = EarlyStopping(
         monitor="val_loss",  # 监控验证集损失
-        patience=3,  # 容忍多少个epoch没有改善
+        patience=2,  # 容忍多少个epoch没有改善
         restore_best_weights=True,  # 恢复最佳权重
         mode="min",  # 最小化指标
         verbose=1,
@@ -128,7 +128,7 @@ def main(time_delay=5):
         X_train,
         y_train,
         validation_data=(X_test, y_test_code),
-        epochs=10,
+        epochs=4,
         shuffle=False,
         batch_size=1024,
         callbacks=[early_stopping],
