@@ -15,18 +15,19 @@ class FBetaScore(tf.keras.metrics.Metric):
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         # 将预测转换为类别
+        y_true_labels = tf.argmax(y_true, axis=-1)
         y_pred_labels = tf.argmax(y_pred, axis=-1)  # 如果是多分类
         # 或者 y_pred_labels = tf.round(y_pred) 如果是二分类
 
-        y_true = tf.cast(y_true, tf.int32)
+        y_true_labels = tf.cast(y_true_labels, tf.int32)
         y_pred_labels = tf.cast(y_pred_labels, tf.int32)
 
         # 创建掩码
-        true_non_one_mask = tf.not_equal(y_true, 1)
+        true_non_one_mask = tf.not_equal(y_true_labels, 1)
         pred_non_one_mask = tf.not_equal(y_pred_labels, 1)
 
         # 计算真正例（true_positives）：预测为非1且正确的样本
-        correct_predictions = tf.equal(y_true, y_pred_labels)
+        correct_predictions = tf.equal(y_true_labels, y_pred_labels)
         true_positives = tf.logical_and(pred_non_one_mask, correct_predictions)
         true_positives = tf.cast(true_positives, tf.float32)
 
