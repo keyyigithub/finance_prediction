@@ -46,6 +46,7 @@ def preprocess_data(df, sequence_length=30, time_delay=5):
         # "n_ask5",
         # "n_asize5",
     ]
+    df["n_midprice"] = df["n_midprice"] + 1
 
     # 处理缺失值（用前一个值填充）
     df[feature_columns] = df[feature_columns].fillna(method="ffill")
@@ -87,34 +88,69 @@ def build_lstm_model(input_shape):
 
 
 # 4. 主函数
-def main():
-    file_path = "./merged_data/merged_0.csv"
+def main(time_delay=5):
 
-    # 加载数据
-    df = load_data(file_path)
-    # print(f"数据形状: {df.shape}")
-    # print(f"列名: {df.columns.tolist()}")
-    # print(df.head())
-    #
-    # # Visualize the data
-    # # Plot the closing price over time
-    # plt.figure(figsize=(14, 7))
-    # plt.plot(df["n_midprice"], label="Midprice")
-    # plt.title("Midprice Over Time")
-    # plt.xlabel("Date")
-    # plt.ylabel("Price")
-    # plt.legend()
-    # plt.grid(True)
-    #
-    # plt.show()
+    # Initialize empty arrays for incremental concatenation
+    X_train = None
+    X_test = None
+    y_train = None
+    y_test = None
 
-    # 预处理数据
     sequence_length = 100  # 使用过去30个tick的数据
-    time_delay = 5
     print("Preprocessing Data...")
-    X, y = preprocess_data(df, sequence_length, time_delay)
+    for i in range(9):
+        print("-" * 50)
+        print(f"Stock Index: {i}")
+
+        # Process one stock at a time to reduce memory footprint
+        df_raw = pd.read_csv(f"./merged_data/merged_{i}.csv")
+        # print_memory_usage(f"After loading stock {i}")
+
+        # print_memory_usage(f"After feature engineering stock {i}")
+
+        # Calculate the midprice return
+        # df_with_features[f"return_after_{time_delay}"] = (
+        #     df_with_features["n_midprice"].shift(-time_delay)
+        #     - df_with_features["n_midprice"]
+        # ) / (df_with_features["n_midprice"])
+        df_raw = df_raw.head(len(df_raw) - time_delay)
+        df_raw = df_raw.tail(len(df_raw) - 20)
+        df_raw[f"midprice_after_{time_delay}"] = df_raw["n_midprice"].shift(-time_delay)
+
+        df_raw[f"relabel_continue_{time_delay}"] = (
+            df_raw[f"midprice_after_{time_delay}"] / df_raw[f"n_midprice"] - 1
+        ) * 200
+
+        df_raw = df_raw.tail(len(df_raw) - 20)
+        df_raw = df_raw.head(len(df_raw) - time_delay)
+
+        # print(eval.check_feature_distributions(df_with_features, dp.selected_features))
+
+        X_single, y_single = preprocess_data(df_raw, sequence_length, time_delay)
+        # y_single_code = eval.label_to_double_one_hot(y_single)
+        # print_memory_usage(f"After sequentializing stock {i}")
+
+        # (X_train_single, X_test_single, y_train_single, y_test_single) = dp.split(
+        #     X_single, y_single, test_size=0.2
+        # )
+        X_train_single = X_single
+        y_train_single = y_single
+        # print_memory_usage(f"After splitting data of stock {i}")
+
+        # Incremental concatenation
+        if X_train is None:
+            X_train = X_train_single
+            # X_test = X_test_single
+            y_train = y_train_single
+            # y_test = y_test_single
+        else:
+            X_train = np.concatenate([X_train, X_train_single], axis=0)
+            # X_test = np.concatenate([X_test, X_test_single], axis=0)
+            y_train = np.concatenate([y_train, y_train_single], axis=0)
+            # y_test = np.concatenate([y_test, y_test_single], axis=0)
+
     print("Preprocessing Data...Done")
-    df_test = load_data("./merged_data/merged_1.csv")
+    df_test = load_data("./merged_data/merged_9.csv")
     df_test[f"return_after_{time_delay}"] = (
         df_test["n_midprice"].shift(-time_delay) - df_test["n_midprice"]
     ) / df_test["n_midprice"]
@@ -125,7 +161,7 @@ def main():
 
     # 构建模型
     print("Building model...")
-    input_shape = (X.shape[1], X.shape[2])
+    input_shape = (X_train.shape[1], X_train.shape[2])
     model = build_lstm_model(input_shape)
     print("Building model...Done")
     model.summary()
@@ -138,8 +174,8 @@ def main():
     )
     # 训练模型
     history = model.fit(
-        X,
-        y,
+        X_train,
+        y_train,
         validation_data=(X_test, y_test),
         epochs=10,
         batch_size=128,
@@ -149,9 +185,9 @@ def main():
 
     # 预测示例
     y_pred = model.predict(X_test)
-    print("Plotting test results...")
-    plot_predict_curve(y_test, y_pred)
-    draw_loss_curve(history=history)
+    # print("Plotting test results...")
+    # plot_predict_curve(y_test, y_pred)
+    # draw_loss_curve(history=history)
 
     # Draw loss curve
     # draw_loss_curve(history)
