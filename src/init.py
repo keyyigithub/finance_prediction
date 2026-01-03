@@ -73,7 +73,7 @@ def main(time_delay=5):
         #     X_single, y_single, test_size=0.2
         # )
         X_train_single = X_single
-        y_train_single = eval.label_to_one_hot(y_single)
+        y_train_single = eval.label_to_one_hot(y_single.astype(int))
         # print_memory_usage(f"After splitting data of stock {i}")
 
         # Incremental concatenation
